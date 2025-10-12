@@ -1,0 +1,71 @@
+package com.bms.reserva_servicio_backend.request;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import com.bms.reserva_servicio_backend.dto.ItemReservaDTO;
+import com.bms.reserva_servicio_backend.dto.PaqueteReservaDTO;
+import com.bms.reserva_servicio_backend.dto.ServicioReservaDTO;
+
+import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+
+@Data
+public class PaqueteReservaRequest {
+    
+    @NotNull(message = "El ID del cliente es obligatorio")
+    private Long clienteId;
+    
+    @NotBlank(message = "El nombre del paquete es obligatorio")
+    @Size(min = 5, max = 100, message = "El nombre debe tener entre 5 y 100 caracteres")
+    private String nombre;
+    
+    @NotNull(message = "La fecha de inicio es obligatoria")
+    private LocalDateTime fechaInicio;
+    
+    @NotNull(message = "La fecha de fin es obligatoria")
+    private LocalDateTime fechaFin;
+    
+    // Cabaña (opcional, puede ser un paquete solo de servicios)
+    private Long cabanaId;
+    private List<ItemReservaDTO> itemsCabana;
+    
+    // Servicios incluidos (opcional, puede ser solo cabaña)
+    private List<ServicioReservaDTO> servicios;
+    
+    private String notasEspeciales;
+    
+    /**
+     * Convertir Request a DTO interno
+     */
+    public PaqueteReservaDTO toDTO() {
+        PaqueteReservaDTO  dto = new PaqueteReservaDTO();
+        dto.setNombre(this.nombre);
+        dto.setFechaInicio(this.fechaInicio);
+        dto.setFechaFin(this.fechaFin);
+        dto.setCabanaId(this.cabanaId);
+        dto.setItemsCabana(this.itemsCabana);
+        dto.setServicios(this.servicios);
+        dto.setNotasEspeciales(this.notasEspeciales);
+        return dto;
+    }
+    
+    /**
+     * Validación personalizada
+     */
+    @AssertTrue(message = "La fecha de fin debe ser posterior a la fecha de inicio")
+    public boolean isFechasValidas() {
+        if (fechaInicio == null || fechaFin == null) {
+            return true; // @NotNull se encarga
+        }
+        return fechaFin.isAfter(fechaInicio);
+    }
+    
+    @AssertTrue(message = "Debe incluir al menos una cabaña o un servicio")
+    public boolean tieneAlMenosUnRecurso() {
+        return cabanaId != null || (servicios != null && !servicios.isEmpty());
+    }
+}
