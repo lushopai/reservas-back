@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class RegisterRequest {
+public class UpdateUserRequest {
 
     @NotBlank(message = "El nombre es obligatorio")
     private String nombre;
@@ -19,7 +19,7 @@ public class RegisterRequest {
     @Email(message = "Email inválido")
     private String email;
 
-    @NotBlank(message = "La contraseña es obligatoria")
+    // Password es opcional en actualizaciones
     @Size(min = 6, message = "La contraseña debe tener al menos 6 caracteres")
     private String password;
 

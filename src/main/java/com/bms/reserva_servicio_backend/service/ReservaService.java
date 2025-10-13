@@ -242,6 +242,13 @@ public class ReservaService {
     }
 
     /**
+     * Obtener todas las reservas
+     */
+    public List<Reserva> obtenerTodas() {
+        return reservaRepository.findAll();
+    }
+
+    /**
      * Calcular precio de items
      */
     private BigDecimal calcularPrecioItems(List<ItemReservaDTO> items) {

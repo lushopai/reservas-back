@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
@@ -67,13 +68,14 @@ public class User {
 
     private String tipoDocumento;
     private LocalDateTime fechaRegistro;
+    private LocalDateTime ultimoAcceso;
 
     // ========== RELACIONES (antes en Cliente) ==========
-    @JsonIgnoreProperties({ "user", "handler", "hibernateLazyInitializer" })
+    @JsonIgnore  // Evita serialización cíclica al listar usuarios
     @OneToMany(mappedBy = "user")
     private List<Reserva> reservas = new ArrayList<>();
 
-    @JsonIgnoreProperties({ "user", "handler", "hibernateLazyInitializer" })
+    @JsonIgnore  // Evita serialización cíclica al listar usuarios
     @OneToMany(mappedBy = "user")
     private List<PaqueteReserva> paquetesReserva = new ArrayList<>();
 

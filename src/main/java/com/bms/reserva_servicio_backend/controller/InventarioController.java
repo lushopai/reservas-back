@@ -8,9 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -94,18 +96,111 @@ public class InventarioController {
     @PostMapping
     public ResponseEntity<SuccessResponse<ItemInventarioResponse>> agregarItem(
             @Valid @RequestBody ItemInventarioRequest request) {
-        
+
         ItemsInventario item = inventarioService.agregarItem(request.toEntity());
-        
+
         ItemInventarioResponse response = ItemInventarioResponse.builder()
             .id(item.getId())
             .nombre(item.getNombre())
             .categoria(item.getCategoria())
             .cantidadTotal(item.getCantidadTotal())
+            .cantidadDisponible(item.getCantidadDisponible())
+            .estadoItem(item.getEstadoItem())
+            .esReservable(item.getEsReservable())
+            .precioReserva(item.getPrecioReserva())
+            .recursoId(item.getRecurso() != null ? item.getRecurso().getId() : null)
+            .nombreRecurso(item.getRecurso() != null ? item.getRecurso().getNombre() : null)
             .build();
-        
+
         return ResponseEntity
             .status(HttpStatus.CREATED)
             .body(SuccessResponse.of(response, "Item agregado exitosamente"));
+    }
+
+    /**
+     * GET /api/inventario
+     * Obtener todos los items del inventario
+     */
+    @GetMapping
+    public ResponseEntity<List<ItemInventarioResponse>> obtenerTodos() {
+        List<ItemsInventario> items = inventarioService.obtenerItemsPorRecurso(null);
+
+        List<ItemInventarioResponse> response = items.stream()
+            .map(item -> ItemInventarioResponse.builder()
+                .id(item.getId())
+                .nombre(item.getNombre())
+                .categoria(item.getCategoria())
+                .cantidadTotal(item.getCantidadTotal())
+                .cantidadDisponible(item.getCantidadDisponible())
+                .estadoItem(item.getEstadoItem())
+                .esReservable(item.getEsReservable())
+                .precioReserva(item.getPrecioReserva())
+                .recursoId(item.getRecurso() != null ? item.getRecurso().getId() : null)
+                .nombreRecurso(item.getRecurso() != null ? item.getRecurso().getNombre() : null)
+                .build())
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * GET /api/inventario/{id}
+     * Obtener item por ID
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<ItemInventarioResponse> obtenerPorId(@PathVariable Long id) {
+        ItemsInventario item = inventarioService.obtenerPorId(id);
+
+        ItemInventarioResponse response = ItemInventarioResponse.builder()
+            .id(item.getId())
+            .nombre(item.getNombre())
+            .categoria(item.getCategoria())
+            .cantidadTotal(item.getCantidadTotal())
+            .cantidadDisponible(item.getCantidadDisponible())
+            .estadoItem(item.getEstadoItem())
+            .esReservable(item.getEsReservable())
+            .precioReserva(item.getPrecioReserva())
+            .recursoId(item.getRecurso() != null ? item.getRecurso().getId() : null)
+            .nombreRecurso(item.getRecurso() != null ? item.getRecurso().getNombre() : null)
+            .build();
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * PUT /api/inventario/{id}
+     * Actualizar item del inventario
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<SuccessResponse<ItemInventarioResponse>> actualizarItem(
+            @PathVariable Long id,
+            @Valid @RequestBody ItemInventarioRequest request) {
+
+        ItemsInventario itemActualizado = inventarioService.actualizarItem(id, request.toEntity());
+
+        ItemInventarioResponse response = ItemInventarioResponse.builder()
+            .id(itemActualizado.getId())
+            .nombre(itemActualizado.getNombre())
+            .categoria(itemActualizado.getCategoria())
+            .cantidadTotal(itemActualizado.getCantidadTotal())
+            .cantidadDisponible(itemActualizado.getCantidadDisponible())
+            .estadoItem(itemActualizado.getEstadoItem())
+            .esReservable(itemActualizado.getEsReservable())
+            .precioReserva(itemActualizado.getPrecioReserva())
+            .recursoId(itemActualizado.getRecurso() != null ? itemActualizado.getRecurso().getId() : null)
+            .nombreRecurso(itemActualizado.getRecurso() != null ? itemActualizado.getRecurso().getNombre() : null)
+            .build();
+
+        return ResponseEntity.ok(SuccessResponse.of(response, "Item actualizado exitosamente"));
+    }
+
+    /**
+     * DELETE /api/inventario/{id}
+     * Eliminar item del inventario
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<SuccessResponse<String>> eliminarItem(@PathVariable Long id) {
+        inventarioService.eliminarItem(id);
+        return ResponseEntity.ok(SuccessResponse.of("Item eliminado", "Item eliminado exitosamente del inventario"));
     }
 }

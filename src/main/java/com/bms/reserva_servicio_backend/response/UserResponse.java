@@ -21,5 +21,7 @@ public class UserResponse {
     private String email;
     private String telefono;
     private LocalDateTime fechaRegistro;
+    private LocalDateTime ultimoAcceso;
+    private Boolean enabled;
     private Integer totalReservas;
 }

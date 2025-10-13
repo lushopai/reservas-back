@@ -163,4 +163,26 @@ public class ReservaController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * GET /api/reservas
+     * Obtener todas las reservas (para admin)
+     */
+    @GetMapping
+    public ResponseEntity<List<ReservaResponse>> obtenerTodasLasReservas(
+            @RequestParam(required = false) String estado) {
+
+        List<Reserva> reservas;
+        if (estado != null && !estado.isEmpty()) {
+            reservas = reservaService.obtenerPorEstado(estado);
+        } else {
+            reservas = reservaService.obtenerTodas();
+        }
+
+        List<ReservaResponse> response = reservas.stream()
+                .map(mapper::toResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
+    }
+
 }

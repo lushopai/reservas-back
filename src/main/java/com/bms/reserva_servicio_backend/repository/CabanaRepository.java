@@ -12,6 +12,8 @@ import com.bms.reserva_servicio_backend.models.Cabana;
 public interface CabanaRepository extends JpaRepository<Cabana, Long> {
     List<Cabana> findByEstado(String estado);
 
+    boolean existsByNombre(String nombre);
+
     @Query("SELECT c FROM Cabana c WHERE c.capacidadPersonas >= :capacidad " +
             "AND c.estado = 'DISPONIBLE'")
     List<Cabana> findDisponiblesPorCapacidad(@Param("capacidad") Integer capacidad);

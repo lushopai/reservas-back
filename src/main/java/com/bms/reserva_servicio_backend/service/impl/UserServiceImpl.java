@@ -15,6 +15,7 @@ import com.bms.reserva_servicio_backend.models.User;
 import com.bms.reserva_servicio_backend.repository.RoleRepository;
 import com.bms.reserva_servicio_backend.repository.UserRepository;
 import com.bms.reserva_servicio_backend.request.RegisterRequest;
+import com.bms.reserva_servicio_backend.request.UpdateUserRequest;
 import com.bms.reserva_servicio_backend.response.SuccessResponse;
 import com.bms.reserva_servicio_backend.response.UserResponse;
 import com.bms.reserva_servicio_backend.service.UserService;
@@ -89,6 +90,7 @@ public class UserServiceImpl implements UserService {
         user.setUsername(request.getEmail()); // usar email como username
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setNombres(request.getNombre());
+        user.setApellidos(request.getApellido());
         user.setEmail(request.getEmail());
         user.setTelefono(request.getTelefono());
         user.setDocumento(request.getDocumento());
@@ -109,8 +111,11 @@ public class UserServiceImpl implements UserService {
                 .id(savedUser.getId())
                 .username(savedUser.getUsername())
                 .nombre(savedUser.getNombres())
+                .apellido(savedUser.getApellidos())
                 .email(savedUser.getEmail())
                 .telefono(savedUser.getTelefono())
+                .documento(savedUser.getDocumento())
+                .tipoDocumento(savedUser.getTipoDocumento())
                 .fechaRegistro(savedUser.getFechaRegistro())
                 .totalReservas(0)
                 .build();
@@ -132,6 +137,13 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional(readOnly = true)
+    public User findByUsername(String username) {
+        return repository.findByUsername(username)
+                .orElse(null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public User findByEmail(String email) {
         return repository.findByEmail(email)
                 .orElse(null);
@@ -145,7 +157,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public SuccessResponse<UserResponse> updateUser(Long id, RegisterRequest request) {
+    public SuccessResponse<UserResponse> updateUser(Long id, UpdateUserRequest request) {
         SuccessResponse<UserResponse> response = new SuccessResponse<>();
 
         User user = repository.findById(id).orElse(null);
@@ -169,9 +181,27 @@ public class UserServiceImpl implements UserService {
             user.setUsername(request.getEmail());
         }
 
+        // Validar documento si cambió
+        if (!user.getDocumento().equals(request.getDocumento())) {
+            if (repository.existsByDocumento(request.getDocumento())) {
+                response.setSuccess(false);
+                response.setTimestamp(LocalDateTime.now());
+                response.setMessage("El documento ya está en uso");
+                return response;
+            }
+            user.setDocumento(request.getDocumento());
+        }
+
         // Actualizar datos
         user.setNombres(request.getNombre());
+        user.setApellidos(request.getApellido());
         user.setTelefono(request.getTelefono());
+        user.setTipoDocumento(request.getTipoDocumento());
+
+        // Actualizar contraseña solo si se proporcionó
+        if (request.getPassword() != null && !request.getPassword().trim().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
 
         User updatedUser = repository.save(user);
 
@@ -179,8 +209,11 @@ public class UserServiceImpl implements UserService {
                 .id(updatedUser.getId())
                 .username(updatedUser.getUsername())
                 .nombre(updatedUser.getNombres())
+                .apellido(updatedUser.getApellidos())
                 .email(updatedUser.getEmail())
                 .telefono(updatedUser.getTelefono())
+                .documento(updatedUser.getDocumento())
+                .tipoDocumento(updatedUser.getTipoDocumento())
                 .build();
 
         response.setSuccess(true);
@@ -191,8 +224,36 @@ public class UserServiceImpl implements UserService {
         return response;
     }
 
+    @Override
+    @Transactional
+    public void updateUltimoAcceso(String username) {
+        repository.findByUsername(username).ifPresent(user -> {
+            user.setUltimoAcceso(LocalDateTime.now());
+            repository.save(user);
+        });
+    }
 
+    @Override
+    public SuccessResponse<UserResponse> toggleUserStatus(Long id) {
+        SuccessResponse<UserResponse> successResponse = new SuccessResponse<>();
 
+        User user = repository.findById(id).orElse(null);
+        if (user == null) {
+            successResponse.setSuccess(false);
+            successResponse.setTimestamp(LocalDateTime.now());
+            successResponse.setData(null);
+            successResponse.setMessage("Error: usuario no existe");
+            return successResponse;
+        }
 
+        user.setEnabled(!user.isEnabled());
+        repository.save(user);
+        successResponse.setSuccess(true);
+        successResponse.setTimestamp(LocalDateTime.now());
+        successResponse.setData(null);
+        successResponse.setMessage("OK");
+        return successResponse;
+
+    }
 
 }

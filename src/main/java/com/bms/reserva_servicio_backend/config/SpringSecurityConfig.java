@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.Ordered;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,6 +24,7 @@ import org.springframework.web.filter.CorsFilter;
 
 import com.bms.reserva_servicio_backend.security.filter.JwtAuthenticationFilter;
 import com.bms.reserva_servicio_backend.security.filter.JwtValidationFilter;
+import com.bms.reserva_servicio_backend.service.UserService;
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
@@ -30,6 +32,12 @@ public class SpringSecurityConfig {
 
     @Autowired
     private AuthenticationConfiguration authenticationConfiguration;
+
+    private final UserService userService;
+
+    public SpringSecurityConfig(@Lazy UserService userService) {
+        this.userService = userService;
+    }
 
     @Bean
     AuthenticationManager authenticationManager() throws Exception {
@@ -146,7 +154,7 @@ public class SpringSecurityConfig {
                         
                         .anyRequest().authenticated()
                 )
-                .addFilter(new JwtAuthenticationFilter(authenticationManager()))
+                .addFilter(new JwtAuthenticationFilter(authenticationManager(), userService))
                 .addFilter(new JwtValidationFilter(authenticationManager()))
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
