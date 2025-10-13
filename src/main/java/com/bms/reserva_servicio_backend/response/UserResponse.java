@@ -15,7 +15,7 @@ public class UserResponse {
     private Long id;
     private String username;
     private String nombre;
-    private String apellido;
+    private String apellidos; // Cambiar a plural para coincidir con modelo User
     private String documento;
     private String tipoDocumento;
     private String email;

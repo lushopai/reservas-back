@@ -1,7 +1,6 @@
 package com.bms.reserva_servicio_backend.controller;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,7 +56,7 @@ public class UserController {
                 .id(user.getId())
                 .username(user.getUsername())
                 .nombre(user.getNombres())
-                .apellido(user.getApellidos())
+                .apellidos(user.getApellidos()) // Cambiar a apellidos (plural)
                 .documento(user.getDocumento())
                 .tipoDocumento(user.getTipoDocumento())
                 .email(user.getEmail())

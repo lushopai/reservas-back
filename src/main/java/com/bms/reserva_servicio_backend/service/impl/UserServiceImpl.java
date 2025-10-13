@@ -90,7 +90,7 @@ public class UserServiceImpl implements UserService {
         user.setUsername(request.getEmail()); // usar email como username
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setNombres(request.getNombre());
-        user.setApellidos(request.getApellido());
+        user.setApellidos(request.getApellidos());  // Cambiar a getApellidos() plural
         user.setEmail(request.getEmail());
         user.setTelefono(request.getTelefono());
         user.setDocumento(request.getDocumento());
@@ -111,7 +111,7 @@ public class UserServiceImpl implements UserService {
                 .id(savedUser.getId())
                 .username(savedUser.getUsername())
                 .nombre(savedUser.getNombres())
-                .apellido(savedUser.getApellidos())
+                .apellidos(savedUser.getApellidos()) // Cambiar a apellidos (plural)
                 .email(savedUser.getEmail())
                 .telefono(savedUser.getTelefono())
                 .documento(savedUser.getDocumento())
@@ -194,7 +194,7 @@ public class UserServiceImpl implements UserService {
 
         // Actualizar datos
         user.setNombres(request.getNombre());
-        user.setApellidos(request.getApellido());
+        user.setApellidos(request.getApellidos()); // Cambiar a getApellidos() plural
         user.setTelefono(request.getTelefono());
         user.setTipoDocumento(request.getTipoDocumento());
 
@@ -209,7 +209,7 @@ public class UserServiceImpl implements UserService {
                 .id(updatedUser.getId())
                 .username(updatedUser.getUsername())
                 .nombre(updatedUser.getNombres())
-                .apellido(updatedUser.getApellidos())
+                .apellidos(updatedUser.getApellidos()) // Cambiar a apellidos (plural)
                 .email(updatedUser.getEmail())
                 .telefono(updatedUser.getTelefono())
                 .documento(updatedUser.getDocumento())

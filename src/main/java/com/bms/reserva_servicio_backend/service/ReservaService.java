@@ -94,7 +94,7 @@ public class ReservaService {
         Reserva reserva = new Reserva();
         reserva.setRecurso(cabana);
         reserva.setUser(user);  // CAMBIADO: setCliente -> setUser
-        reserva.setFechaFin(LocalDateTime.now());
+        reserva.setFechaReserva(LocalDateTime.now());  // CORREGIDO: era setFechaFin
         reserva.setFechaInicio(fechaInicio.atTime(15, 0));
         reserva.setFechaFin(fechaFin.atTime(12, 0));
         reserva.setPrecioBase(precioBase);

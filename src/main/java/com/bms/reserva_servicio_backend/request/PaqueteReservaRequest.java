@@ -1,5 +1,6 @@
 package com.bms.reserva_servicio_backend.request;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,19 +16,19 @@ import lombok.Data;
 
 @Data
 public class PaqueteReservaRequest {
-    
+
     @NotNull(message = "El ID del cliente es obligatorio")
     private Long clienteId;
-    
+
     @NotBlank(message = "El nombre del paquete es obligatorio")
     @Size(min = 5, max = 100, message = "El nombre debe tener entre 5 y 100 caracteres")
     private String nombre;
-    
+
     @NotNull(message = "La fecha de inicio es obligatoria")
-    private LocalDateTime fechaInicio;
-    
+    private LocalDate fechaInicio; // Cambiar a LocalDate para recibir solo fecha
+
     @NotNull(message = "La fecha de fin es obligatoria")
-    private LocalDateTime fechaFin;
+    private LocalDate fechaFin; // Cambiar a LocalDate para recibir solo fecha
     
     // Cabaña (opcional, puede ser un paquete solo de servicios)
     private Long cabanaId;
@@ -44,8 +45,9 @@ public class PaqueteReservaRequest {
     public PaqueteReservaDTO toDTO() {
         PaqueteReservaDTO  dto = new PaqueteReservaDTO();
         dto.setNombre(this.nombre);
-        dto.setFechaInicio(this.fechaInicio);
-        dto.setFechaFin(this.fechaFin);
+        // Convertir LocalDate a LocalDateTime (check-in a las 15:00, check-out a las 12:00)
+        dto.setFechaInicio(this.fechaInicio.atTime(15, 0));
+        dto.setFechaFin(this.fechaFin.atTime(12, 0));
         dto.setCabanaId(this.cabanaId);
         dto.setItemsCabana(this.itemsCabana);
         dto.setServicios(this.servicios);
