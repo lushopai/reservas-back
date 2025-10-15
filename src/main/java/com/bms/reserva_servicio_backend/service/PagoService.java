@@ -99,11 +99,26 @@ public class PagoService {
     public List<Pagos> obtenerPagosPorReserva(Long reservaId) {
         return pagoRepository.findByReservaId(reservaId);
     }
-    
+
     /**
      * Obtener pagos de un paquete
      */
     public List<Pagos> obtenerPagosPorPaquete(Long paqueteId) {
         return pagoRepository.findByPaqueteId(paqueteId);
+    }
+
+    /**
+     * Obtener todos los pagos
+     */
+    public List<Pagos> obtenerTodos() {
+        return pagoRepository.findAll();
+    }
+
+    /**
+     * Obtener pago por ID
+     */
+    public Pagos obtenerPorId(Long id) {
+        return pagoRepository.findById(id)
+            .orElseThrow(() -> new jakarta.persistence.EntityNotFoundException("Pago no encontrado con ID: " + id));
     }
 }

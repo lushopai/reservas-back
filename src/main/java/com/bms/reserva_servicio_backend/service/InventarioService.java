@@ -128,21 +128,67 @@ public class InventarioService {
     public ItemsInventario agregarItem(ItemsInventario item) {
         return itemRepository.save(item);
     }
-    
+
+    /**
+     * Agregar nuevo item con recurso asignado
+     */
+    public ItemsInventario agregarItemConRecurso(com.bms.reserva_servicio_backend.request.ItemInventarioRequest request) {
+        // Buscar el recurso
+        com.bms.reserva_servicio_backend.models.Recurso recurso = recursoRepository.findById(request.getRecursoId())
+            .orElseThrow(() -> new EntityNotFoundException("Recurso no encontrado con ID: " + request.getRecursoId()));
+
+        // Crear el item
+        ItemsInventario item = request.toEntity();
+        item.setRecurso(recurso);
+
+        return itemRepository.save(item);
+    }
+
     /**
      * Actualizar item
      */
     public ItemsInventario actualizarItem(Long id, ItemsInventario itemActualizado) {
         ItemsInventario item = itemRepository.findById(id)
             .orElseThrow(() -> new EntityNotFoundException("Item no encontrado"));
-        
+
         item.setNombre(itemActualizado.getNombre());
         item.setCategoria(itemActualizado.getCategoria());
         item.setCantidadTotal(itemActualizado.getCantidadTotal());
         item.setEstadoItem(itemActualizado.getEstadoItem());
         item.setEsReservable(itemActualizado.getEsReservable());
         item.setPrecioReserva(itemActualizado.getPrecioReserva());
-        
+
+        return itemRepository.save(item);
+    }
+
+    /**
+     * Actualizar item con recurso asignado
+     */
+    public ItemsInventario actualizarItemConRecurso(Long id, com.bms.reserva_servicio_backend.request.ItemInventarioRequest request) {
+        ItemsInventario item = itemRepository.findById(id)
+            .orElseThrow(() -> new EntityNotFoundException("Item no encontrado con ID: " + id));
+
+        // Buscar el recurso si cambió
+        if (request.getRecursoId() != null) {
+            com.bms.reserva_servicio_backend.models.Recurso recurso = recursoRepository.findById(request.getRecursoId())
+                .orElseThrow(() -> new EntityNotFoundException("Recurso no encontrado con ID: " + request.getRecursoId()));
+            item.setRecurso(recurso);
+        }
+
+        // Actualizar campos
+        item.setNombre(request.getNombre());
+        item.setCategoria(request.getCategoria());
+        item.setCantidadTotal(request.getCantidadTotal());
+        item.setEstadoItem(request.getEstadoItem() != null ? request.getEstadoItem() : "BUENO");
+        item.setEsReservable(request.getEsReservable());
+        item.setPrecioReserva(request.getPrecioReserva());
+
+        // Mantener cantidadDisponible si no cambió el total
+        if (!item.getCantidadTotal().equals(request.getCantidadTotal())) {
+            // Si cambió el total, ajustar el disponible proporcionalmente
+            item.setCantidadDisponible(request.getCantidadTotal());
+        }
+
         return itemRepository.save(item);
     }
     

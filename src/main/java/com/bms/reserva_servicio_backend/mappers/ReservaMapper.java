@@ -26,6 +26,17 @@ public class ReservaMapper {
      * Convertir Reserva Entity a Response
      */
     public ReservaResponse toResponse(Reserva reserva) {
+        // Obtener información del usuario
+        String nombreUsuario = null;
+        String emailUsuario = null;
+        if (reserva.getUser() != null) {
+            nombreUsuario = reserva.getUser().getNombres() + " " + reserva.getUser().getApellidos();
+            emailUsuario = reserva.getUser().getEmail();
+        }
+
+        // Obtener nombre del recurso
+        String nombreRecurso = reserva.getRecurso() != null ? reserva.getRecurso().getNombre() : null;
+
         return ReservaResponse.builder()
             .id(reserva.getId())
             .tipoReserva(reserva.getTipoReserva())
@@ -36,6 +47,9 @@ public class ReservaMapper {
             .precioBase(reserva.getPrecioBase())
             .precioItems(reserva.getPrecioItems())
             .precioTotal(reserva.getPrecioTotal())
+            .nombreUsuario(nombreUsuario)
+            .emailUsuario(emailUsuario)
+            .nombreRecurso(nombreRecurso)
             .recurso(toRecursoResponse(reserva.getRecurso()))
             .itemsReservados(toItemsReservadosResponse(reserva.getItemsReservados()))
             .paqueteId(reserva.getPaquete() != null ? reserva.getPaquete().getId() : null)
@@ -80,13 +94,22 @@ public class ReservaMapper {
     
     
     private RecursoResponse toRecursoResponse(Recurso recurso) {
+        // Obtener imagen principal
+        String imagenPrincipal = recurso.getImagenes().stream()
+            .filter(img -> img.getEsPrincipal())
+            .findFirst()
+            .map(img -> img.getUrl())
+            .orElse(null);
+
         RecursoResponse.RecursoResponseBuilder builder = RecursoResponse.builder()
             .id(recurso.getId())
             .nombre(recurso.getNombre())
             .descripcion(recurso.getDescripcion())
             .estado(recurso.getEstado())
-            .precioPorUnidad(recurso.getPrecioPorUnidad());
-        
+            .precioPorUnidad(recurso.getPrecioPorUnidad())
+            .imagenes(recurso.getImagenes())
+            .imagenPrincipalUrl(imagenPrincipal);
+
         if (recurso instanceof Cabana) {
             Cabana cabana = (Cabana) recurso;
             builder.tipo("CABAÑA")
@@ -99,7 +122,7 @@ public class ReservaMapper {
                 .tipoServicio(servicio.getTipoServicio())
                 .duracionBloqueMinutos(servicio.getDuracionBloqueMinutos());
         }
-        
+
         return builder.build();
     }
     

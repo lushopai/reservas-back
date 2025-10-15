@@ -1,6 +1,9 @@
 package com.bms.reserva_servicio_backend.response;
 
 import java.math.BigDecimal;
+import java.util.List;
+
+import com.bms.reserva_servicio_backend.models.RecursoImagen;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,20 +18,24 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RecursoResponse {
-    
+
     private Long id;
     private String tipo;               // CABAÑA, SERVICIO
     private String nombre;
     private String descripcion;
     private String estado;
     private BigDecimal precioPorUnidad;
-    
+
     // Si es cabaña
     private Integer capacidadPersonas;
     private Integer numeroHabitaciones;
     private String tipoCabana;
-    
+
     // Si es servicio
     private String tipoServicio;
     private Integer duracionBloqueMinutos;
+
+    // Imágenes
+    private List<RecursoImagen> imagenes;
+    private String imagenPrincipalUrl;
 }

@@ -97,7 +97,8 @@ public class InventarioController {
     public ResponseEntity<SuccessResponse<ItemInventarioResponse>> agregarItem(
             @Valid @RequestBody ItemInventarioRequest request) {
 
-        ItemsInventario item = inventarioService.agregarItem(request.toEntity());
+        // Convertir request a entidad y asignar recurso
+        ItemsInventario item = inventarioService.agregarItemConRecurso(request);
 
         ItemInventarioResponse response = ItemInventarioResponse.builder()
             .id(item.getId())
@@ -176,7 +177,7 @@ public class InventarioController {
             @PathVariable Long id,
             @Valid @RequestBody ItemInventarioRequest request) {
 
-        ItemsInventario itemActualizado = inventarioService.actualizarItem(id, request.toEntity());
+        ItemsInventario itemActualizado = inventarioService.actualizarItemConRecurso(id, request);
 
         ItemInventarioResponse response = ItemInventarioResponse.builder()
             .id(itemActualizado.getId())

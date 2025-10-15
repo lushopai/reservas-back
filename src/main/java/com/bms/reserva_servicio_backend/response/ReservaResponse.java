@@ -31,7 +31,12 @@ public class ReservaResponse {
     private BigDecimal precioBase;
     private BigDecimal precioItems;
     private BigDecimal precioTotal;
-    
+
+    // Información del usuario
+    private String nombreUsuario;
+    private String emailUsuario;
+    private String nombreRecurso;
+
     // Relaciones
     private RecursoResponse recurso;
     private List<ItemReservadoResponse> itemsReservados;

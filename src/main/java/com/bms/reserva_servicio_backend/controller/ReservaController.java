@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.bms.reserva_servicio_backend.mappers.ReservaMapper;
 import com.bms.reserva_servicio_backend.models.Reserva;
+import com.bms.reserva_servicio_backend.request.CambioEstadoRequest;
 import com.bms.reserva_servicio_backend.request.PagoRequest;
 import com.bms.reserva_servicio_backend.request.ReservaCabanaRequest;
 import com.bms.reserva_servicio_backend.request.ReservaServicioRequest;
@@ -183,6 +184,28 @@ public class ReservaController {
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * PUT /api/reservas/{id}/estado
+     * Cambiar estado de una reserva (Admin)
+     */
+    @PutMapping("/{id}/estado")
+    public ResponseEntity<SuccessResponse<ReservaResponse>> cambiarEstadoReserva(
+            @PathVariable Long id,
+            @Valid @RequestBody CambioEstadoRequest request) {
+
+        Reserva reserva = reservaService.cambiarEstado(
+                id,
+                request.getNuevoEstado(),
+                request.getMotivo(),
+                request.getObservaciones()
+        );
+
+        ReservaResponse response = mapper.toResponse(reserva);
+
+        return ResponseEntity.ok(
+                SuccessResponse.of(response, "Estado de reserva actualizado exitosamente"));
     }
 
 }

@@ -249,6 +249,75 @@ public class ReservaService {
     }
 
     /**
+     * Cambiar estado de una reserva con validaciones
+     */
+    public Reserva cambiarEstado(Long reservaId, String nuevoEstado, String motivo, String observaciones) {
+        Reserva reserva = reservaRepository.findById(reservaId)
+                .orElseThrow(() -> new EntityNotFoundException("Reserva no encontrada"));
+
+        String estadoActual = reserva.getEstado();
+
+        // Validar transición de estado
+        if (!esTransicionValida(estadoActual, nuevoEstado)) {
+            throw new IllegalStateException(
+                String.format("No se puede cambiar de %s a %s", estadoActual, nuevoEstado)
+            );
+        }
+
+        // Aplicar cambio de estado
+        reserva.setEstado(nuevoEstado);
+
+        // Agregar observaciones si existen
+        if (observaciones != null && !observaciones.trim().isEmpty()) {
+            String obsActuales = reserva.getObservaciones() != null ? reserva.getObservaciones() : "";
+            reserva.setObservaciones(obsActuales + "\n" + LocalDateTime.now() + " - " + observaciones);
+        }
+
+        // Si se cancela, liberar recursos
+        if ("CANCELADA".equals(nuevoEstado)) {
+            inventarioService.liberarItems(reserva);
+            disponibilidadService.liberarRecurso(reserva);
+
+            if (motivo != null) {
+                String obsActuales = reserva.getObservaciones() != null ? reserva.getObservaciones() : "";
+                reserva.setObservaciones(obsActuales + "\nMotivo cancelación: " + motivo);
+            }
+        }
+
+        return reservaRepository.save(reserva);
+    }
+
+    /**
+     * Validar si una transición de estado es válida
+     */
+    private boolean esTransicionValida(String estadoActual, String nuevoEstado) {
+        // Estados válidos
+        if (!List.of("BORRADOR", "PENDIENTE", "CONFIRMADA", "EN_CURSO", "COMPLETADA", "CANCELADA")
+                .contains(nuevoEstado)) {
+            return false;
+        }
+
+        // Desde CANCELADA o COMPLETADA no se puede cambiar
+        if ("CANCELADA".equals(estadoActual) || "COMPLETADA".equals(estadoActual)) {
+            return false;
+        }
+
+        // Transiciones válidas según flujo de negocio
+        switch (estadoActual) {
+            case "BORRADOR":
+                return List.of("PENDIENTE", "CANCELADA").contains(nuevoEstado);
+            case "PENDIENTE":
+                return List.of("CONFIRMADA", "CANCELADA").contains(nuevoEstado);
+            case "CONFIRMADA":
+                return List.of("EN_CURSO", "CANCELADA").contains(nuevoEstado);
+            case "EN_CURSO":
+                return List.of("COMPLETADA", "CANCELADA").contains(nuevoEstado);
+            default:
+                return false;
+        }
+    }
+
+    /**
      * Calcular precio de items
      */
     private BigDecimal calcularPrecioItems(List<ItemReservaDTO> items) {

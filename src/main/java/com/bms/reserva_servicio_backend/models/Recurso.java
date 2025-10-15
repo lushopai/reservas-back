@@ -34,6 +34,9 @@ public abstract class Recurso {
     @OneToMany(mappedBy = "recurso")
     private List<Reserva> reservas = new ArrayList<>();
 
+    @OneToMany(mappedBy = "recurso", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RecursoImagen> imagenes = new ArrayList<>();
+
     public Long getId() {
         return id;
     }
@@ -88,6 +91,14 @@ public abstract class Recurso {
 
     public void setReservas(List<Reserva> reservas) {
         this.reservas = reservas;
+    }
+
+    public List<RecursoImagen> getImagenes() {
+        return imagenes;
+    }
+
+    public void setImagenes(List<RecursoImagen> imagenes) {
+        this.imagenes = imagenes;
     }
 
     @Override
