@@ -34,6 +34,7 @@ public class Reserva {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @JsonIgnoreProperties({"inventario", "imagenes", "reservas"})
     @ManyToOne
     @JoinColumn(name = "recurso_id")
     private Recurso recurso;

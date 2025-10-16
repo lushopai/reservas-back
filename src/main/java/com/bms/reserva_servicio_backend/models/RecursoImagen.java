@@ -16,7 +16,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Table(name = "recursos_imagenes")
@@ -30,7 +30,7 @@ public class RecursoImagen {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonIgnoreProperties({"imagenes", "reservas", "itemsInventario", "handler", "hibernateLazyInitializer"})
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "recurso_id", nullable = false)
     private Recurso recurso;

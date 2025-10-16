@@ -69,7 +69,16 @@ public class SpringSecurityConfig {
                         // Inventario - Solo lectura pública (ver qué items hay disponibles)
                         .requestMatchers(HttpMethod.GET, "/api/inventario/recurso/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/inventario/*/disponibilidad").permitAll()
-                        
+
+                        // Catálogo público - Ver cabañas y servicios (sin autenticación)
+                        .requestMatchers(HttpMethod.GET, "/api/cabanas").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/cabanas/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/servicios").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/servicios/*").permitAll()
+
+                        // Imágenes - Acceso público para ver imágenes cargadas
+                        .requestMatchers("/uploads/**").permitAll()
+
                         // ============================================
                         // CLIENTES - Requiere autenticación
                         // ============================================

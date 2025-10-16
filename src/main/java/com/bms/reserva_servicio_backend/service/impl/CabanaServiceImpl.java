@@ -243,6 +243,7 @@ public class CabanaServiceImpl implements CabanaService {
                 .totalReservas(cabana.getReservas() != null ? cabana.getReservas().size() : 0)
                 .disponibleHoy("DISPONIBLE".equals(cabana.getEstado()))
                 .itemsInventario(cabana.getInventario() != null ? cabana.getInventario().size() : 0)
+                .imagenes(cabana.getImagenes())
                 .build();
     }
 

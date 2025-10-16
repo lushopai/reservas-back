@@ -4,6 +4,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -28,12 +31,15 @@ public abstract class Recurso {
     private String estado; // DISPONIBLE, MANTENIMIENTO, FUERA_SERVICIO
     private BigDecimal precioPorUnidad;
 
+    @JsonIgnoreProperties("recurso")
     @OneToMany(mappedBy = "recurso", cascade = CascadeType.ALL)
     private List<ItemsInventario> inventario = new ArrayList<>();
 
+    @JsonIgnoreProperties("recurso")
     @OneToMany(mappedBy = "recurso")
     private List<Reserva> reservas = new ArrayList<>();
 
+    @JsonManagedReference
     @OneToMany(mappedBy = "recurso", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RecursoImagen> imagenes = new ArrayList<>();
 

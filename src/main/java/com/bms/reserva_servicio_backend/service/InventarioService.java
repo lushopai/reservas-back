@@ -121,7 +121,14 @@ public class InventarioService {
     public List<ItemsInventario> obtenerItemsPorRecurso(Long recursoId) {
         return itemRepository.findByRecursoId(recursoId);
     }
-    
+
+    /**
+     * Obtener todos los items del inventario
+     */
+    public List<ItemsInventario> obtenerTodos() {
+        return itemRepository.findAll();
+    }
+
     /**
      * Agregar nuevo item
      */

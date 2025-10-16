@@ -124,7 +124,7 @@ public class InventarioController {
      */
     @GetMapping
     public ResponseEntity<List<ItemInventarioResponse>> obtenerTodos() {
-        List<ItemsInventario> items = inventarioService.obtenerItemsPorRecurso(null);
+        List<ItemsInventario> items = inventarioService.obtenerTodos();
 
         List<ItemInventarioResponse> response = items.stream()
             .map(item -> ItemInventarioResponse.builder()

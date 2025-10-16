@@ -239,6 +239,7 @@ public class ServicioServiceImpl implements ServicioService {
                 .disponibleHoy("DISPONIBLE".equals(servicio.getEstado()))
                 .bloquesDisponibles(servicio.getBloquesDisponibles() != null ? servicio.getBloquesDisponibles().size() : 0)
                 .itemsInventario(servicio.getInventario() != null ? servicio.getInventario().size() : 0)
+                .imagenes(servicio.getImagenes())
                 .build();
     }
 

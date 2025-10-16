@@ -1,6 +1,9 @@
 package com.bms.reserva_servicio_backend.response;
 
 import java.math.BigDecimal;
+import java.util.List;
+
+import com.bms.reserva_servicio_backend.models.RecursoImagen;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -30,5 +33,8 @@ public class ServicioResponse {
     private Boolean disponibleHoy; // Si está disponible hoy
     private Integer bloquesDisponibles; // Cantidad de bloques horarios configurados
     private Integer itemsInventario; // Cantidad de items asociados (equipamiento)
+
+    // Imágenes
+    private List<RecursoImagen> imagenes;
 
 }

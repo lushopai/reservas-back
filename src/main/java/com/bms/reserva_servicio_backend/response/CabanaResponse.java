@@ -1,6 +1,9 @@
 package com.bms.reserva_servicio_backend.response;
 
 import java.math.BigDecimal;
+import java.util.List;
+
+import com.bms.reserva_servicio_backend.models.RecursoImagen;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,5 +34,8 @@ public class CabanaResponse {
     private Integer totalReservas; // Total de reservas históricas
     private Boolean disponibleHoy; // Si está disponible hoy
     private Integer itemsInventario; // Cantidad de items asociados
+
+    // Imágenes
+    private List<RecursoImagen> imagenes;
 
 }
