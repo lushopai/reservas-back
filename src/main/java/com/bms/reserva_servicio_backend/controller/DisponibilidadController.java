@@ -125,6 +125,40 @@ public class DisponibilidadController {
     }
 
     /**
+     * GET /api/disponibilidad/cabanas/{id}/fechas-ocupadas
+     * Obtener solo las fechas ocupadas/bloqueadas de una cabaña
+     */
+    @GetMapping("/cabanas/{id}/fechas-ocupadas")
+    public ResponseEntity<List<LocalDate>> obtenerFechasOcupadas(
+            @PathVariable Long id,
+            @RequestParam LocalDate fechaInicio,
+            @RequestParam LocalDate fechaFin) {
+
+        // Obtener todas las disponibilidades en el rango
+        List<DisponibilidadCabana> disponibilidades = disponibilidadCabanaRepository
+            .findByRangoFechas(id, fechaInicio, fechaFin);
+
+        // Filtrar solo las fechas no disponibles y extraer las fechas
+        List<LocalDate> fechasOcupadas = disponibilidades.stream()
+            .filter(d -> !d.getDisponible())
+            .map(DisponibilidadCabana::getFecha)
+            .collect(Collectors.toList());
+
+        // También agregar fechas de reservas confirmadas
+        List<LocalDate> fechasReservadas = disponibilidadService
+            .obtenerFechasReservadas(id, fechaInicio, fechaFin);
+
+        // Combinar y eliminar duplicados
+        fechasOcupadas.addAll(fechasReservadas);
+        List<LocalDate> fechasUnicas = fechasOcupadas.stream()
+            .distinct()
+            .sorted()
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(fechasUnicas);
+    }
+
+    /**
      * POST /api/disponibilidad/cabanas/{id}/bloquear
      * Bloquear fechas de una cabaña manualmente
      */

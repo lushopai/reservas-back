@@ -18,10 +18,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bms.reserva_servicio_backend.models.ItemsInventario;
 import com.bms.reserva_servicio_backend.request.CabanaRequest;
 import com.bms.reserva_servicio_backend.response.CabanaResponse;
 import com.bms.reserva_servicio_backend.response.SuccessResponse;
 import com.bms.reserva_servicio_backend.service.CabanaService;
+import com.bms.reserva_servicio_backend.service.InventarioService;
 
 import jakarta.validation.Valid;
 
@@ -32,6 +34,9 @@ public class CabanaController {
 
     @Autowired
     private CabanaService cabanaService;
+
+    @Autowired
+    private InventarioService inventarioService;
 
     /**
      * POST /api/cabanas
@@ -118,6 +123,24 @@ public class CabanaController {
     public ResponseEntity<SuccessResponse<String>> eliminarCabana(@PathVariable Long id) {
         SuccessResponse<String> response = cabanaService.eliminarCabana(id);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * GET /api/cabanas/{id}/items-adicionales
+     * Obtener items adicionales reservables de una cabaña
+     */
+    @GetMapping("/{id}/items-adicionales")
+    public ResponseEntity<List<ItemsInventario>> obtenerItemsAdicionales(@PathVariable Long id) {
+        // Obtener todos los items del recurso (cabaña)
+        List<ItemsInventario> items = inventarioService.obtenerItemsPorRecurso(id);
+
+        // Filtrar solo los que son reservables
+        List<ItemsInventario> itemsReservables = items.stream()
+            .filter(item -> item.getEsReservable() != null && item.getEsReservable())
+            .filter(item -> item.getCantidadDisponible() != null && item.getCantidadDisponible() > 0)
+            .toList();
+
+        return ResponseEntity.ok(itemsReservables);
     }
 
     // Clase interna para recibir el estado en PATCH

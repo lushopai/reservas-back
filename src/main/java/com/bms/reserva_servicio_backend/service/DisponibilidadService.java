@@ -3,7 +3,9 @@ package com.bms.reserva_servicio_backend.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -232,5 +234,36 @@ public class DisponibilidadService {
 
             horaActual = horaFinBloque;
         }
+    }
+
+    /**
+     * Obtener todas las fechas reservadas de una cabaña en un rango
+     * (útil para bloquear visualmente en el calendario)
+     */
+    public List<LocalDate> obtenerFechasReservadas(Long cabanaId, LocalDate fechaInicio, LocalDate fechaFin) {
+        LocalDateTime inicio = fechaInicio.atStartOfDay();
+        LocalDateTime fin = fechaFin.atTime(23, 59);
+
+        // Obtener todas las reservas activas (no canceladas) de la cabaña en el rango
+        List<Reserva> reservas = reservaRepository
+                .findReservasEnConflicto(cabanaId, inicio, fin);
+
+        List<LocalDate> fechasReservadas = new ArrayList<>();
+
+        for (Reserva reserva : reservas) {
+            // Solo incluir reservas confirmadas o pendientes (no canceladas)
+            if (!"CANCELADA".equals(reserva.getEstado())) {
+                LocalDate fechaActual = reserva.getFechaInicio().toLocalDate();
+                LocalDate fechaFinReserva = reserva.getFechaFin().toLocalDate();
+
+                // Agregar todas las fechas del rango de la reserva
+                while (!fechaActual.isAfter(fechaFinReserva)) {
+                    fechasReservadas.add(fechaActual);
+                    fechaActual = fechaActual.plusDays(1);
+                }
+            }
+        }
+
+        return fechasReservadas.stream().distinct().collect(Collectors.toList());
     }
 }
