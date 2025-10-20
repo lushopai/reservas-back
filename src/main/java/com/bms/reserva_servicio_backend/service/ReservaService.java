@@ -22,36 +22,37 @@ import com.bms.reserva_servicio_backend.repository.ServicioEntretencionRepositor
 import com.bms.reserva_servicio_backend.repository.UserRepository;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class ReservaService {
 
-    @Autowired
-    private ReservaRepository reservaRepository;
+    private final ReservaRepository reservaRepository;
+    private final CabanaRepository cabanaRepository;
+    private final ServicioEntretencionRepository servicioRepository;
+    private final UserRepository userRepository;
+    private final DisponibilidadService disponibilidadService;
+    private final InventarioService inventarioService;
+    private final PrecioService precioService;
+    private final ValidacionService validacionService;
+    private final PagoService pagoService;
 
     @Autowired
-    private CabanaRepository cabanaRepository;
-
-    @Autowired
-    private ServicioEntretencionRepository servicioRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private DisponibilidadService disponibilidadService;
-
-    @Autowired
-    private InventarioService inventarioService;
-
-    @Autowired
-    private PrecioService precioService;
-
-    @Autowired
-    private ValidacionService validacionService;
-
-    @Autowired
-    private PagoService pagoService;
+    public ReservaService(ReservaRepository reservaRepository, CabanaRepository cabanaRepository,
+            ServicioEntretencionRepository servicioRepository, UserRepository userRepository,
+            DisponibilidadService disponibilidadService, InventarioService inventarioService,
+            PrecioService precioService, ValidacionService validacionService, PagoService pagoService) {
+        this.reservaRepository = reservaRepository;
+        this.cabanaRepository = cabanaRepository;
+        this.servicioRepository = servicioRepository;
+        this.userRepository = userRepository;
+        this.disponibilidadService = disponibilidadService;
+        this.inventarioService = inventarioService;
+        this.precioService = precioService;
+        this.validacionService = validacionService;
+        this.pagoService = pagoService;
+    }
 
     /**
      * Reservar cabaña por dias
@@ -60,7 +61,7 @@ public class ReservaService {
      */
 
     public Reserva reservarCabaña(Long cabanaId, Long userId,
-            LocalDate fechaInicio, LocalDate fechaFin, List<ItemReservaDTO> itemsAdicionales) throws Exception {
+            LocalDate fechaInicio, LocalDate fechaFin, List<ItemReservaDTO> itemsAdicionales) {
 
         // Validar reglas de negocio
         validacionService.validarReservaCabana(fechaInicio, fechaFin, null);
@@ -75,7 +76,7 @@ public class ReservaService {
         // Verificar disponibilidad
 
         if (!disponibilidadService.validarDisponibilidadCabana(cabanaId, fechaInicio, fechaFin)) {
-            throw new Exception("Cabaña no disponible en las fechas seleccionadas");
+            throw new IllegalStateException("Cabaña no disponible en las fechas seleccionadas");
         }
 
         // Validar items del inventario
@@ -121,7 +122,7 @@ public class ReservaService {
      * @throws Exception
      */
     public Reserva reservarServicio(Long servicioId, Long userId, LocalDate fecha,
-            LocalTime horaInicio, Integer duracionBloques, List<ItemReservaDTO> equipamiento) throws Exception {
+            LocalTime horaInicio, Integer duracionBloques, List<ItemReservaDTO> equipamiento) {
 
         // Validart reglas de negocio
         validacionService.validarReservaServicio(fecha, horaInicio, duracionBloques);
@@ -138,7 +139,7 @@ public class ReservaService {
 
         // Verificar disponibilidad del bloque horario
         if (!disponibilidadService.validarDisponibilidadServicio(servicioId, fecha, horaInicio, horaFin)) {
-            throw new Exception("Servicio no disponible en el horario solicitado");
+            throw new IllegalStateException("Servicio no disponible en el horario solicitado");
         }
         // Validar equipamiento disponible
         if (equipamiento != null && !equipamiento.isEmpty()) {

@@ -35,11 +35,14 @@ import jakarta.validation.Valid;
 public class ReservaController {
 
     // ===== INYECCIÓN DE SERVICIOS =====
-    @Autowired
-    private ReservaService reservaService;
+    private final ReservaService reservaService;
+    private final ReservaMapper mapper;
 
     @Autowired
-    private ReservaMapper mapper;
+    public ReservaController(ReservaService reservaService, ReservaMapper mapper) {
+        this.reservaService = reservaService;
+        this.mapper = mapper;
+    }
 
     // ===== ENDPOINTS =====
 
@@ -50,7 +53,7 @@ public class ReservaController {
      */
     @PostMapping("/cabana")
     public ResponseEntity<SuccessResponse<ReservaResponse>> reservarCabana(
-            @Valid @RequestBody ReservaCabanaRequest request) throws Exception {
+            @Valid @RequestBody ReservaCabanaRequest request) {
 
         // El servicio maneja:
         // - ValidacionService.validarReservaCabana()
@@ -78,7 +81,7 @@ public class ReservaController {
      */
     @PostMapping("/servicio")
     public ResponseEntity<SuccessResponse<ReservaResponse>> reservarServicio(
-            @Valid @RequestBody ReservaServicioRequest request) throws Exception {
+            @Valid @RequestBody ReservaServicioRequest request) {
 
         // El servicio maneja:
         // - ValidacionService.validarReservaServicio()
