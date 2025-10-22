@@ -46,11 +46,12 @@ public class ValidacionService {
                     "La fecha de fin debe ser posterior a la fecha de inicio");
         }
 
-        // 3. Validar que no se reserve en el pasado
+        // 3. Validar que no se reserve en el pasado (comparar solo fechas, no horas)
+        LocalDate hoy = LocalDate.now();
         LocalDateTime ahora = LocalDateTime.now();
         LocalDateTime inicioReserva = fechaInicio.atStartOfDay();
 
-        if (inicioReserva.isBefore(ahora)) {
+        if (fechaInicio.isBefore(hoy)) {
             throw new IllegalArgumentException(
                     "No se puede reservar en una fecha pasada");
         }

@@ -1,6 +1,7 @@
 package com.bms.reserva_servicio_backend.service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,10 +45,12 @@ public class PaqueteReservaService {
         PaqueteReserva paquete = new PaqueteReserva();
         paquete.setUser(userRepository.findById(userId).orElseThrow(
                 () -> new EntityNotFoundException("Usuario no encontrado"))); // CAMBIADO: setCliente -> setUser
-                                                                              // paquete.setNombrePaquete(paqueteDTO.getNombre());
+        paquete.setNombrePaquete(paqueteDTO.getNombre());
+        paquete.setFechaCreacion(LocalDateTime.now()); // Establecer fecha de creación
         paquete.setFechaInicio(paqueteDTO.getFechaInicio());
         paquete.setFechaFin(paqueteDTO.getFechaFin());
-        paquete.setEstado("BORRADOR");
+        paquete.setEstado("PENDIENTE"); // Estado inicial para permitir el pago
+        paquete.setNotasEspeciales(paqueteDTO.getNotasEspeciales());
 
         paquete = paqueteRepository.save(paquete);
 
@@ -80,13 +83,10 @@ public class PaqueteReservaService {
             }
         }
 
-        // Aplicar descuento por paquete (ejemplo: 10%)
-        BigDecimal descuento = precioTotal.multiply(new BigDecimal("0.10"));
-        BigDecimal precioFinal = precioTotal.subtract(descuento);
-
+        // Sin descuentos - el precio final es igual al precio total
         paquete.setPrecioTotal(precioTotal);
-        paquete.setDescuento(descuento);
-        paquete.setPrecioFinal(precioFinal);
+        paquete.setDescuento(BigDecimal.ZERO);
+        paquete.setPrecioFinal(precioTotal);
 
         return paqueteRepository.save(paquete);
     }
@@ -106,7 +106,7 @@ public class PaqueteReservaService {
             reserva.setEstado("CONFIRMADA");
         }
 
-        paquete.setEstado("CONFIRMADO");
+        paquete.setEstado("CONFIRMADA");
         return paqueteRepository.save(paquete);
     }
 

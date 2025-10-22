@@ -24,7 +24,7 @@ public class Pagos {
     private Reserva reserva;
 
     @ManyToOne
-    @JoinColumn(name = "paquete__id")
+    @JoinColumn(name = "paquete_id")
     private PaqueteReserva paquete;
 
     private LocalDateTime fechaPago;

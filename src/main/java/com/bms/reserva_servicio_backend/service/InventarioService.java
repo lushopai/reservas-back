@@ -65,31 +65,42 @@ public class InventarioService {
         if (items == null || items.isEmpty()) {
             return;
         }
-        
+
         for (ItemReservaDTO itemDTO : items) {
             ItemsInventario item = itemRepository.findById(itemDTO.getItemId())
                 .orElseThrow(() -> new EntityNotFoundException("Item no encontrado"));
-            
+
             ItemReservado itemReservado = new ItemReservado();
             itemReservado.setReserva(reserva);
             itemReservado.setItem(item);
             itemReservado.setCantidad(itemDTO.getCantidad());
-            itemReservado.setPrecioUnitario(item.getPrecioReserva() != null ? 
+            itemReservado.setPrecioUnitario(item.getPrecioReserva() != null ?
                 item.getPrecioReserva() : BigDecimal.ZERO);
             itemReservado.setSubtotal(itemReservado.getPrecioUnitario()
                 .multiply(new BigDecimal(itemDTO.getCantidad())));
-            
+
             itemReservadoRepository.save(itemReservado);
+
+            // Actualizar cantidad disponible en tiempo real
+            item.setCantidadDisponible(item.getCantidadDisponible() - itemDTO.getCantidad());
+            itemRepository.save(item);
         }
     }
     
     /**
-     * Liberar items
+     * Liberar items - Reponer stock al cancelar o finalizar reserva
      */
     public void liberarItems(Reserva reserva) {
-        // Los items se liberan automáticamente cuando la reserva termina
-        // o se cancela. No necesitamos hacer nada especial ya que
-        // la disponibilidad se calcula dinámicamente
+        // Obtener items reservados de esta reserva
+        List<ItemReservado> itemsReservados = itemReservadoRepository.findByReservaId(reserva.getId());
+
+        for (ItemReservado itemReservado : itemsReservados) {
+            ItemsInventario item = itemReservado.getItem();
+
+            // Reponer cantidad disponible
+            item.setCantidadDisponible(item.getCantidadDisponible() + itemReservado.getCantidad());
+            itemRepository.save(item);
+        }
     }
     
     /**

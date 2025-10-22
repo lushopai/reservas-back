@@ -44,6 +44,7 @@ public class ReservaResponse {
     // Info del paquete (si pertenece a uno)
     private Long paqueteId;
     private String nombrePaquete;
-    
+    private String estadoPaquete;  // Estado del paquete (BORRADOR, PENDIENTE, CONFIRMADO)
+
     private String observaciones;
 }

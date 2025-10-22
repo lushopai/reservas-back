@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.bms.reserva_servicio_backend.dto.ItemReservaDTO;
 
-import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -21,12 +21,12 @@ public class ReservaServicioRequest {
 
     @NotNull(message = "El ID del servicio es obligatorio")
     private Long servicioId;
-    
+
     @NotNull(message = "El ID del cliente es obligatorio")
     private Long clienteId;
-    
+
     @NotNull(message = "La fecha es obligatoria")
-    @Future(message = "La fecha debe ser futura")
+    @FutureOrPresent(message = "La fecha debe ser hoy o futura")
     private LocalDate fecha;
     
     @NotNull(message = "La hora de inicio es obligatoria")

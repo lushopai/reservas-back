@@ -5,7 +5,7 @@ import java.util.List;
 
 import com.bms.reserva_servicio_backend.dto.ItemReservaDTO;
 
-import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -18,11 +18,11 @@ public class ReservaCabanaRequest {
     private Long clienteId;
 
     @NotNull(message = "La fecha de inicio es obligatoria")
-    @Future(message = "La fecha de inicio debe ser futura")
+    @FutureOrPresent(message = "La fecha de inicio debe ser hoy o futura")
     private LocalDate fechaInicio;
 
     @NotNull(message = "La fecha de fin es obligatoria")
-    @Future(message = "La fecha de fin debe ser futura")
+    @FutureOrPresent(message = "La fecha de fin debe ser hoy o futura")
     private LocalDate fechaFin;
 
     // Items adicionales opcionales (vino, flores, etc.)

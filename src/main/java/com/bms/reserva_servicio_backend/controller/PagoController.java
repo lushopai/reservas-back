@@ -124,8 +124,10 @@ public class PagoController {
                     .body(SuccessResponse.of(null, "El monto no coincide con el total del paquete"));
         }
 
-        // Validar que el paquete esté en estado PENDIENTE o CONFIRMADO
-        if (!"PENDIENTE".equals(paquete.getEstado()) && !"CONFIRMADO".equals(paquete.getEstado())) {
+        // Validar que el paquete esté en estado BORRADOR, PENDIENTE o CONFIRMADA
+        if (!"BORRADOR".equals(paquete.getEstado()) &&
+            !"PENDIENTE".equals(paquete.getEstado()) &&
+            !"CONFIRMADA".equals(paquete.getEstado())) {
             return ResponseEntity.badRequest()
                     .body(SuccessResponse.of(null, "El paquete no puede ser pagado en su estado actual: " + paquete.getEstado()));
         }
@@ -133,9 +135,9 @@ public class PagoController {
         // Procesar pago
         Pagos pago = pagoService.procesarPagoPaquete(paquete, request.toDTO());
 
-        // Actualizar estado del paquete a CONFIRMADO si estaba PENDIENTE
-        if ("PENDIENTE".equals(paquete.getEstado())) {
-            paquete.setEstado("CONFIRMADO");
+        // Actualizar estado del paquete a CONFIRMADA si estaba en BORRADOR o PENDIENTE
+        if ("BORRADOR".equals(paquete.getEstado()) || "PENDIENTE".equals(paquete.getEstado())) {
+            paquete.setEstado("CONFIRMADA");
             paqueteReservaRepository.save(paquete);
         }
 

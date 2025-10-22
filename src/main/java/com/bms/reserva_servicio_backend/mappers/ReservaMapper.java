@@ -54,6 +54,7 @@ public class ReservaMapper {
             .itemsReservados(toItemsReservadosResponse(reserva.getItemsReservados()))
             .paqueteId(reserva.getPaquete() != null ? reserva.getPaquete().getId() : null)
             .nombrePaquete(reserva.getPaquete() != null ? reserva.getPaquete().getNombrePaquete() : null)
+            .estadoPaquete(reserva.getPaquete() != null ? reserva.getPaquete().getEstado() : null)
             .observaciones(reserva.getObservaciones())
             .build();
     }
