@@ -224,7 +224,7 @@ public class PagoController {
     private PagoResponse mapToPagoResponsePaquete(Pagos pago) {
         return PagoResponse.builder()
                 .id(pago.getId())
-                .paqueteId(pago.getPaquete() != null ? pago.getPaquete().getId() : null)
+                .reservaId(pago.getPaquete() != null ? pago.getPaquete().getId() : null) // Usar reservaId para consistencia
                 .monto(pago.getMonto())
                 .metodoPago(pago.getMetodoPago())
                 .estado(pago.getEstado())
