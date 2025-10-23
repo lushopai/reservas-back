@@ -45,6 +45,27 @@ public class ReservaResponse {
     private Long paqueteId;
     private String nombrePaquete;
     private String estadoPaquete;  // Estado del paquete (BORRADOR, PENDIENTE, CONFIRMADO)
+    // ✅ Precios del paquete completo
+    private BigDecimal precioTotalPaquete;  // Suma de todas las reservas
+    private BigDecimal descuentoPaquete;     // Descuento aplicado
+    private BigDecimal precioFinalPaquete;   // Total con descuento
+    // ✅ Lista de todas las reservas del paquete (para mostrar desglose completo)
+    private List<ReservaResumenDTO> reservasPaquete;
 
     private String observaciones;
+
+    // DTO simplificado para mostrar reservas del paquete
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ReservaResumenDTO {
+        private Long id;
+        private String nombreRecurso;
+        private String tipoReserva;
+        private BigDecimal precioBase;
+        private BigDecimal precioItems;
+        private BigDecimal precioTotal;
+        private Integer cantidadItems;
+    }
 }

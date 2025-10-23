@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.bms.reserva_servicio_backend.dto.ItemReservaDTO;
 import com.bms.reserva_servicio_backend.models.ItemReservado;
 import com.bms.reserva_servicio_backend.models.ItemsInventario;
+import com.bms.reserva_servicio_backend.models.MovimientoInventario.TipoMovimiento;
 import com.bms.reserva_servicio_backend.models.Reserva;
 import com.bms.reserva_servicio_backend.repository.ItemInventarioRepository;
 import com.bms.reserva_servicio_backend.repository.ItemReservadoRepository;
@@ -24,12 +25,15 @@ public class InventarioService {
 
      @Autowired
     private ItemInventarioRepository itemRepository;
-    
+
     @Autowired
     private ItemReservadoRepository itemReservadoRepository;
-    
+
     @Autowired
     private RecursoRepository recursoRepository;
+
+    @Autowired
+    private MovimientoInventarioService movimientoService;
     
     /**
      * Validar disponibilidad de items
@@ -70,6 +74,18 @@ public class InventarioService {
             ItemsInventario item = itemRepository.findById(itemDTO.getItemId())
                 .orElseThrow(() -> new EntityNotFoundException("Item no encontrado"));
 
+            // ✅ VALIDACIÓN CRÍTICA: Verificar que el item pertenezca al mismo recurso de la reserva
+            if (!item.getRecurso().getId().equals(reserva.getRecurso().getId())) {
+                throw new IllegalArgumentException(
+                    String.format("El item '%s' (ID: %d) pertenece al recurso '%s' (ID: %d), " +
+                                  "pero la reserva es para el recurso '%s' (ID: %d). " +
+                                  "No se pueden reservar items de otros recursos.",
+                                  item.getNombre(), item.getId(),
+                                  item.getRecurso().getNombre(), item.getRecurso().getId(),
+                                  reserva.getRecurso().getNombre(), reserva.getRecurso().getId())
+                );
+            }
+
             ItemReservado itemReservado = new ItemReservado();
             itemReservado.setReserva(reserva);
             itemReservado.setItem(item);
@@ -84,6 +100,16 @@ public class InventarioService {
             // Actualizar cantidad disponible en tiempo real
             item.setCantidadDisponible(item.getCantidadDisponible() - itemDTO.getCantidad());
             itemRepository.save(item);
+
+            // ✅ Registrar movimiento de SALIDA
+            movimientoService.registrarMovimiento(
+                item,
+                TipoMovimiento.SALIDA,
+                itemDTO.getCantidad(),
+                reserva,
+                reserva.getUser(),
+                "Reserva #" + reserva.getId() + " - " + reserva.getRecurso().getNombre()
+            );
         }
     }
     
@@ -94,12 +120,31 @@ public class InventarioService {
         // Obtener items reservados de esta reserva
         List<ItemReservado> itemsReservados = itemReservadoRepository.findByReservaId(reserva.getId());
 
+        String estadoReserva = reserva.getEstado();
+        TipoMovimiento tipoMovimiento = TipoMovimiento.DEVOLUCION;
+
         for (ItemReservado itemReservado : itemsReservados) {
             ItemsInventario item = itemReservado.getItem();
 
             // Reponer cantidad disponible
             item.setCantidadDisponible(item.getCantidadDisponible() + itemReservado.getCantidad());
             itemRepository.save(item);
+
+            // ✅ Registrar movimiento de DEVOLUCION
+            String observacion = String.format(
+                "Devolución por %s - Reserva #%d",
+                estadoReserva.equals("CANCELADA") ? "cancelación" : "finalización",
+                reserva.getId()
+            );
+
+            movimientoService.registrarMovimiento(
+                item,
+                tipoMovimiento,
+                itemReservado.getCantidad(),
+                reserva,
+                reserva.getUser(),
+                observacion
+            );
         }
     }
     

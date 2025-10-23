@@ -233,6 +233,28 @@ public class DashboardService {
                 ? reserva.getFechaReserva()
                 : reserva.getFechaInicio();
 
+        // ✅ Determinar tipo de reserva
+        String tipoReserva = "SERVICIO"; // Por defecto
+        if (reserva.getRecurso() != null) {
+            tipoReserva = reserva.getRecurso() instanceof Cabana ? "CABANA_DIA" : "SERVICIO";
+        }
+
+        // ✅ Obtener información del paquete si existe
+        Long paqueteId = null;
+        String nombrePaquete = null;
+        String estadoPaquete = null;
+        BigDecimal precioTotalPaquete = null;
+        BigDecimal descuentoPaquete = null;
+        BigDecimal precioFinalPaquete = null;
+        if (reserva.getPaquete() != null) {
+            paqueteId = reserva.getPaquete().getId();
+            nombrePaquete = reserva.getPaquete().getNombrePaquete();
+            estadoPaquete = reserva.getPaquete().getEstado();
+            precioTotalPaquete = reserva.getPaquete().getPrecioTotal();
+            descuentoPaquete = reserva.getPaquete().getDescuento();
+            precioFinalPaquete = reserva.getPaquete().getPrecioFinal();
+        }
+
         return ReservaResumeResponse.builder()
                 .id(reserva.getId())
                 .nombreUsuario(nombreUsuario)
@@ -241,6 +263,15 @@ public class DashboardService {
                 .fechaReserva(fechaReserva.toString())
                 .estado(reserva.getEstado())
                 .precioTotal(reserva.getPrecioTotal())
+                // ✅ Campos de paquete
+                .paqueteId(paqueteId)
+                .nombrePaquete(nombrePaquete)
+                .estadoPaquete(estadoPaquete)
+                .tipoReserva(tipoReserva)
+                // ✅ Precios del paquete
+                .precioTotalPaquete(precioTotalPaquete)
+                .descuentoPaquete(descuentoPaquete)
+                .precioFinalPaquete(precioFinalPaquete)
                 .build();
     }
 }

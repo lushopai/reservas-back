@@ -23,9 +23,17 @@ import com.bms.reserva_servicio_backend.response.ReservaResponse;
 public class ReservaMapper {
     
     /**
-     * Convertir Reserva Entity a Response
+     * Convertir Reserva Entity a Response (con detalles del paquete)
      */
     public ReservaResponse toResponse(Reserva reserva) {
+        return toResponse(reserva, true);
+    }
+
+    /**
+     * Convertir Reserva Entity a Response
+     * @param includePackageDetails - Si incluir la lista completa de reservas del paquete
+     */
+    private ReservaResponse toResponse(Reserva reserva, boolean includePackageDetails) {
         // Obtener información del usuario
         String nombreUsuario = null;
         String emailUsuario = null;
@@ -36,6 +44,35 @@ public class ReservaMapper {
 
         // Obtener nombre del recurso
         String nombreRecurso = reserva.getRecurso() != null ? reserva.getRecurso().getNombre() : null;
+
+        // ✅ Obtener precios del paquete si existe
+        BigDecimal precioTotalPaquete = null;
+        BigDecimal descuentoPaquete = null;
+        BigDecimal precioFinalPaquete = null;
+        List<ReservaResponse.ReservaResumenDTO> reservasPaquete = null;
+
+        if (reserva.getPaquete() != null) {
+            PaqueteReserva paquete = reserva.getPaquete();
+            precioTotalPaquete = paquete.getPrecioTotal();
+            descuentoPaquete = paquete.getDescuento();
+            precioFinalPaquete = paquete.getPrecioFinal();
+
+            // ✅ Mapear todas las reservas del paquete para el desglose
+            // IMPORTANTE: Solo incluir si includePackageDetails=true para evitar ciclos infinitos
+            if (includePackageDetails && paquete.getReservas() != null) {
+                reservasPaquete = paquete.getReservas().stream()
+                    .map(r -> ReservaResponse.ReservaResumenDTO.builder()
+                        .id(r.getId())
+                        .nombreRecurso(r.getRecurso() != null ? r.getRecurso().getNombre() : "N/A")
+                        .tipoReserva(r.getTipoReserva())
+                        .precioBase(r.getPrecioBase())
+                        .precioItems(r.getPrecioItems())
+                        .precioTotal(r.getPrecioTotal())
+                        .cantidadItems(r.getItemsReservados() != null ? r.getItemsReservados().size() : 0)
+                        .build())
+                    .collect(Collectors.toList());
+            }
+        }
 
         return ReservaResponse.builder()
             .id(reserva.getId())
@@ -55,6 +92,12 @@ public class ReservaMapper {
             .paqueteId(reserva.getPaquete() != null ? reserva.getPaquete().getId() : null)
             .nombrePaquete(reserva.getPaquete() != null ? reserva.getPaquete().getNombrePaquete() : null)
             .estadoPaquete(reserva.getPaquete() != null ? reserva.getPaquete().getEstado() : null)
+            // ✅ Precios del paquete
+            .precioTotalPaquete(precioTotalPaquete)
+            .descuentoPaquete(descuentoPaquete)
+            .precioFinalPaquete(precioFinalPaquete)
+            // ✅ Lista de reservas del paquete
+            .reservasPaquete(reservasPaquete)
             .observaciones(reserva.getObservaciones())
             .build();
     }
@@ -84,8 +127,9 @@ public class ReservaMapper {
             .descuento(paquete.getDescuento())
             .precioFinal(paquete.getPrecioFinal())
             .porcentajeDescuento(porcentajeDesc)
+            // ✅ NO incluir detalles del paquete en cada reserva para evitar ciclos infinitos
             .reservas(paquete.getReservas().stream()
-                .map(this::toResponse)
+                .map(r -> toResponse(r, false))
                 .collect(Collectors.toList()))
             .cantidadReservas(paquete.getReservas().size())
             .diasEstadia((int) diasEstadia)

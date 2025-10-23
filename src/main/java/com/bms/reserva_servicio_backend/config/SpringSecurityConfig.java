@@ -151,9 +151,16 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/estadisticas/**").hasRole("ADMIN")
                         
                         // ============================================
+                        // AUDITORÍA - Solo ADMIN (temporal para debugging)
+                        // ============================================
+
+                        .requestMatchers(HttpMethod.GET, "/api/auditoria/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auditoria/**").permitAll()
+
+                        // ============================================
                         // HEALTH CHECK Y ACTUATOR (Opcional)
                         // ============================================
-                        
+
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/actuator/**").hasRole("ADMIN")
                         

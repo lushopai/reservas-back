@@ -274,7 +274,7 @@ public class ReservaService {
             reserva.setObservaciones(obsActuales + "\n" + LocalDateTime.now() + " - " + observaciones);
         }
 
-        // Si se cancela, liberar recursos
+        // Si se cancela o completa, liberar recursos e inventario
         if ("CANCELADA".equals(nuevoEstado)) {
             inventarioService.liberarItems(reserva);
             disponibilidadService.liberarRecurso(reserva);
@@ -283,6 +283,10 @@ public class ReservaService {
                 String obsActuales = reserva.getObservaciones() != null ? reserva.getObservaciones() : "";
                 reserva.setObservaciones(obsActuales + "\nMotivo cancelación: " + motivo);
             }
+        } else if ("COMPLETADA".equals(nuevoEstado)) {
+            // ✅ Al completar, también liberar items para que vuelvan a estar disponibles
+            inventarioService.liberarItems(reserva);
+            // No liberamos el recurso porque ya se usó, solo los items
         }
 
         return reservaRepository.save(reserva);

@@ -57,4 +57,15 @@ public interface ReservaRepository extends JpaRepository<Reserva, Long> {
                         @Param("inicio") LocalDateTime inicio,
                         @Param("fin") LocalDateTime fin);
 
+        // Métodos para el scheduler de reservas
+        @Query("SELECT r FROM Reserva r WHERE r.estado IN :estados AND r.fechaFin < :fechaFin")
+        List<Reserva> findByEstadoInAndFechaFinBefore(
+                        @Param("estados") List<String> estados,
+                        @Param("fechaFin") LocalDateTime fechaFin);
+
+        @Query("SELECT r FROM Reserva r WHERE r.estado = :estado AND r.fechaInicio < :fechaInicio")
+        List<Reserva> findByEstadoAndFechaInicioBefore(
+                        @Param("estado") String estado,
+                        @Param("fechaInicio") LocalDateTime fechaInicio);
+
 }

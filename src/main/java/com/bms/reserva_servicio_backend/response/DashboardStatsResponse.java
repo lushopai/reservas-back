@@ -74,5 +74,14 @@ public class DashboardStatsResponse {
         private String fechaReserva;
         private String estado;
         private BigDecimal precioTotal;
+        // ✅ Campos para agrupamiento de paquetes
+        private Long paqueteId;
+        private String nombrePaquete;
+        private String estadoPaquete;
+        private String tipoReserva; // "CABANA_DIA" o "SERVICIO"
+        // ✅ Precios del paquete completo
+        private BigDecimal precioTotalPaquete;  // Suma de todas las reservas
+        private BigDecimal descuentoPaquete;     // Descuento aplicado
+        private BigDecimal precioFinalPaquete;   // Total con descuento
     }
 }

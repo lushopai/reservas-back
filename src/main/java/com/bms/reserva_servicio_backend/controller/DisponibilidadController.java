@@ -271,4 +271,44 @@ public class DisponibilidadController {
             "Bloques horarios generados exitosamente"
         ));
     }
+
+    /**
+     * GET /api/disponibilidad/servicios/{id}/rango
+     * Obtener bloques horarios de un servicio por rango de fechas
+     */
+    @GetMapping("/servicios/{id}/rango")
+    public ResponseEntity<List<BloqueHorarioResponse>> obtenerBloquesPorRango(
+            @PathVariable Long id,
+            @RequestParam LocalDate fechaInicio,
+            @RequestParam LocalDate fechaFin) {
+
+        List<BloqueHorario> bloques = disponibilidadService
+            .obtenerBloquesPorRangoFechas(id, fechaInicio, fechaFin);
+
+        List<BloqueHorarioResponse> response = bloques.stream()
+            .map(b -> BloqueHorarioResponse.builder()
+                .id(b.getId())
+                .fecha(b.getFecha())
+                .horaInicio(b.getHoraInicio())
+                .horaFin(b.getHoraFin())
+                .disponible(b.getDisponible())
+                .motivoNoDisponible(b.getMotivoNoDisponible())
+                .build())
+            .collect(Collectors.toList());
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * DELETE /api/disponibilidad/bloques/{id}/desbloquear
+     * Desbloquear un bloque específico
+     */
+    @DeleteMapping("/bloques/{id}/desbloquear")
+    public ResponseEntity<SuccessResponse<String>> desbloquearBloque(@PathVariable Long id) {
+        disponibilidadService.desbloquearBloque(id);
+        return ResponseEntity.ok(SuccessResponse.of(
+            "Bloque desbloqueado",
+            "El bloque está disponible nuevamente"
+        ));
+    }
 }

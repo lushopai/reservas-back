@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.bms.reserva_servicio_backend.models.ItemsInventario;
 import com.bms.reserva_servicio_backend.request.CabanaRequest;
 import com.bms.reserva_servicio_backend.response.CabanaResponse;
+import com.bms.reserva_servicio_backend.response.ItemInventarioResponse;
 import com.bms.reserva_servicio_backend.response.SuccessResponse;
 import com.bms.reserva_servicio_backend.service.CabanaService;
 import com.bms.reserva_servicio_backend.service.InventarioService;
@@ -130,14 +131,26 @@ public class CabanaController {
      * Obtener items adicionales reservables de una cabaña
      */
     @GetMapping("/{id}/items-adicionales")
-    public ResponseEntity<List<ItemsInventario>> obtenerItemsAdicionales(@PathVariable Long id) {
+    public ResponseEntity<List<ItemInventarioResponse>> obtenerItemsAdicionales(@PathVariable Long id) {
         // Obtener todos los items del recurso (cabaña)
         List<ItemsInventario> items = inventarioService.obtenerItemsPorRecurso(id);
 
-        // Filtrar solo los que son reservables
-        List<ItemsInventario> itemsReservables = items.stream()
+        // Filtrar solo los que son reservables y mapear a DTO
+        List<ItemInventarioResponse> itemsReservables = items.stream()
             .filter(item -> item.getEsReservable() != null && item.getEsReservable())
             .filter(item -> item.getCantidadDisponible() != null && item.getCantidadDisponible() > 0)
+            .map(item -> ItemInventarioResponse.builder()
+                .id(item.getId())
+                .nombre(item.getNombre())
+                .categoria(item.getCategoria())
+                .cantidadTotal(item.getCantidadTotal())
+                .cantidadDisponible(item.getCantidadDisponible())
+                .estadoItem(item.getEstadoItem())
+                .esReservable(item.getEsReservable())
+                .precioReserva(item.getPrecioReserva())
+                .recursoId(item.getRecurso() != null ? item.getRecurso().getId() : null)
+                .nombreRecurso(item.getRecurso() != null ? item.getRecurso().getNombre() : null)
+                .build())
             .toList();
 
         return ResponseEntity.ok(itemsReservables);

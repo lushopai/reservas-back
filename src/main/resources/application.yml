@@ -34,7 +34,7 @@ app:
     anticipacion-minima-horas: 2  # Cambiado de 24 a 2 para permitir reservas del mismo día
     estadia-minima-dias: 1
     estadia-maxima-dias: 30
-    servicio-anticipacion-minima-horas: 2
+    servicio-anticipacion-minima-horas: 0  # 0 horas para permitir pruebas inmediatas
   precios:
     iva-porcentaje: 0.19
     descuento-vip-porcentaje: 0.05

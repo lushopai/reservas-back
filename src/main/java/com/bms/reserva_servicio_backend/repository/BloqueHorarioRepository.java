@@ -29,4 +29,20 @@ public interface BloqueHorarioRepository extends JpaRepository<BloqueHorario, Lo
             @Param("fecha") LocalDate fecha,
             @Param("horaInicio") LocalTime horaInicio,
             @Param("horaFin") LocalTime horaFin);
+
+    @Query("SELECT b FROM BloqueHorario b WHERE b.servicio.id = :servicioId " +
+            "AND b.fecha BETWEEN :fechaInicio AND :fechaFin " +
+            "ORDER BY b.fecha, b.horaInicio")
+    List<BloqueHorario> findBloquesPorRangoFechas(
+            @Param("servicioId") Long servicioId,
+            @Param("fechaInicio") LocalDate fechaInicio,
+            @Param("fechaFin") LocalDate fechaFin);
+
+    @Query("SELECT COUNT(b) > 0 FROM BloqueHorario b WHERE b.servicio.id = :servicioId " +
+            "AND b.fecha = :fecha AND b.horaInicio = :horaInicio AND b.horaFin = :horaFin")
+    boolean existeBloqueExacto(
+            @Param("servicioId") Long servicioId,
+            @Param("fecha") LocalDate fecha,
+            @Param("horaInicio") LocalTime horaInicio,
+            @Param("horaFin") LocalTime horaFin);
 }

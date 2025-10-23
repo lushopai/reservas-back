@@ -223,14 +223,20 @@ public class DisponibilidadService {
                 break;
             }
 
-            BloqueHorario bloque = new BloqueHorario();
-            bloque.setServicio(servicio);
-            bloque.setFecha(fecha);
-            bloque.setHoraInicio(horaActual);
-            bloque.setHoraFin(horaFinBloque);
-            bloque.setDisponible(true);
+            // Verificar si el bloque ya existe para evitar duplicados
+            boolean existe = bloqueHorarioRepository.existeBloqueExacto(
+                    servicioId, fecha, horaActual, horaFinBloque);
 
-            bloqueHorarioRepository.save(bloque);
+            if (!existe) {
+                BloqueHorario bloque = new BloqueHorario();
+                bloque.setServicio(servicio);
+                bloque.setFecha(fecha);
+                bloque.setHoraInicio(horaActual);
+                bloque.setHoraFin(horaFinBloque);
+                bloque.setDisponible(true);
+
+                bloqueHorarioRepository.save(bloque);
+            }
 
             horaActual = horaFinBloque;
         }
@@ -265,5 +271,27 @@ public class DisponibilidadService {
         }
 
         return fechasReservadas.stream().distinct().collect(Collectors.toList());
+    }
+
+    /**
+     * Obtener bloques horarios por rango de fechas
+     */
+    public List<BloqueHorario> obtenerBloquesPorRangoFechas(Long servicioId, LocalDate fechaInicio, LocalDate fechaFin) {
+        return bloqueHorarioRepository.findBloquesPorRangoFechas(servicioId, fechaInicio, fechaFin);
+    }
+
+    /**
+     * Desbloquear un bloque horario específico
+     */
+    public void desbloquearBloque(Long bloqueId) {
+        BloqueHorario bloque = bloqueHorarioRepository.findById(bloqueId)
+            .orElseThrow(() -> new EntityNotFoundException("Bloque no encontrado"));
+
+        // Solo desbloquear si no está reservado
+        if (!"RESERVADO".equals(bloque.getMotivoNoDisponible())) {
+            bloque.setDisponible(true);
+            bloque.setMotivoNoDisponible(null);
+            bloqueHorarioRepository.save(bloque);
+        }
     }
 }

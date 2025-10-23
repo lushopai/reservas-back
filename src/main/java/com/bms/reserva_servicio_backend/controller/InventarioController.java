@@ -55,6 +55,8 @@ public class InventarioController {
                 .estadoItem(item.getEstadoItem())
                 .esReservable(item.getEsReservable())
                 .precioReserva(item.getPrecioReserva())
+                .recursoId(item.getRecurso() != null ? item.getRecurso().getId() : null)
+                .nombreRecurso(item.getRecurso() != null ? item.getRecurso().getNombre() : null)
                 .build())
             .collect(Collectors.toList());
         
