@@ -21,7 +21,7 @@ import com.bms.reserva_servicio_backend.service.MovimientoInventarioService;
 
 @RestController
 @RequestMapping("/api/movimientos-inventario")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:4200")
 public class MovimientoInventarioController {
 
     @Autowired

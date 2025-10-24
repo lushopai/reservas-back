@@ -5,19 +5,21 @@ import jakarta.persistence.Query;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
 @RestController
 @RequestMapping("/api/auditoria")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:4200")
 public class AuditoriaController {
 
     @Autowired
     private EntityManager entityManager;
 
     @GetMapping("/completa")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> ejecutarAuditoriaCompleta() {
         Map<String, Object> resultados = new LinkedHashMap<>();
 
@@ -58,6 +60,7 @@ public class AuditoriaController {
 
     @PostMapping("/corregir-items-incorrectos")
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> corregirItemsIncorrectos() {
         Map<String, Object> resultado = new LinkedHashMap<>();
 
@@ -71,8 +74,11 @@ public class AuditoriaController {
             int eliminados = 0;
             for (Map<String, Object> item : itemsIncorrectos) {
                 Object itemReservadoId = item.get("col_0");
-                String sqlDelete = "DELETE FROM items_reservados WHERE id = " + itemReservadoId;
-                int deleted = entityManager.createNativeQuery(sqlDelete).executeUpdate();
+                // FIX: Usar parámetros preparados para prevenir SQL injection
+                String sqlDelete = "DELETE FROM items_reservados WHERE id = :id";
+                Query query = entityManager.createNativeQuery(sqlDelete);
+                query.setParameter("id", itemReservadoId);
+                int deleted = query.executeUpdate();
                 eliminados += deleted;
             }
             resultado.put("registros_eliminados", eliminados);
@@ -94,6 +100,7 @@ public class AuditoriaController {
 
     @PostMapping("/recalcular-stock")
     @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Map<String, Object>> recalcularStock() {
         Map<String, Object> resultado = new LinkedHashMap<>();
 

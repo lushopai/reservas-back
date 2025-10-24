@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -38,6 +39,7 @@ public class ServicioController {
      * Crear nuevo servicio de entretención
      */
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SuccessResponse<ServicioResponse>> crearServicio(
             @Valid @RequestBody ServicioRequest request) {
         SuccessResponse<ServicioResponse> response = servicioService.crearServicio(request);
@@ -95,6 +97,7 @@ public class ServicioController {
      * Actualizar servicio completo
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SuccessResponse<ServicioResponse>> actualizarServicio(
             @PathVariable Long id,
             @Valid @RequestBody ServicioRequest request) {
@@ -108,6 +111,7 @@ public class ServicioController {
      * Body: { "estado": "MANTENIMIENTO" }
      */
     @PatchMapping("/{id}/estado")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SuccessResponse<ServicioResponse>> cambiarEstado(
             @PathVariable Long id,
             @RequestBody EstadoRequest estadoRequest) {
@@ -120,6 +124,7 @@ public class ServicioController {
      * Eliminar servicio (soft delete - pasa a FUERA_SERVICIO)
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SuccessResponse<String>> eliminarServicio(@PathVariable Long id) {
         SuccessResponse<String> response = servicioService.eliminarServicio(id);
         return ResponseEntity.ok(response);

@@ -3,6 +3,7 @@ package com.bms.reserva_servicio_backend.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,7 +27,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/paquetes")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:4200")
 public class PaqueteController {
     
     @Autowired
@@ -38,9 +39,10 @@ public class PaqueteController {
     /**
      * POST /api/paquetes
      * Crear paquete combinado (cabaña + servicios)
-     * @throws Exception 
+     * @throws Exception
      */
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<SuccessResponse<PaqueteResponse>> crearPaquete(
             @Valid @RequestBody PaqueteReservaRequest request) throws Exception {
         
@@ -71,6 +73,7 @@ public class PaqueteController {
      * Confirmar paquete completo con pago
      */
     @PutMapping("/{id}/confirmar")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<SuccessResponse<PaqueteResponse>> confirmarPaquete(
             @PathVariable Long id,
             @Valid @RequestBody PagoRequest pagoRequest) {
@@ -92,6 +95,7 @@ public class PaqueteController {
      * Obtener detalles de un paquete
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<PaqueteResponse> obtenerPaquete(@PathVariable Long id) {
         PaqueteReserva paquete = paqueteService.obtenerPorId(id);
         return ResponseEntity.ok(mapper.toPaqueteResponse(paquete));

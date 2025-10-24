@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,7 +30,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/inventario")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:4200")
 public class InventarioController {
     
     @Autowired
@@ -40,6 +41,7 @@ public class InventarioController {
      * Obtener inventario de un recurso
      */
     @GetMapping("/recurso/{recursoId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ItemInventarioResponse>> obtenerInventarioRecurso(
             @PathVariable Long recursoId) {
         
@@ -68,6 +70,7 @@ public class InventarioController {
      * Consultar disponibilidad de un item en un período
      */
     @GetMapping("/{id}/disponibilidad")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<DisponibilidadItemResponse> consultarDisponibilidadItem(
             @PathVariable Long id,
             @RequestParam LocalDateTime fechaInicio,
@@ -96,6 +99,7 @@ public class InventarioController {
      * Agregar item al inventario
      */
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SuccessResponse<ItemInventarioResponse>> agregarItem(
             @Valid @RequestBody ItemInventarioRequest request) {
 
@@ -125,6 +129,7 @@ public class InventarioController {
      * Obtener todos los items del inventario
      */
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ItemInventarioResponse>> obtenerTodos() {
         List<ItemsInventario> items = inventarioService.obtenerTodos();
 
@@ -151,6 +156,7 @@ public class InventarioController {
      * Obtener item por ID
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ItemInventarioResponse> obtenerPorId(@PathVariable Long id) {
         ItemsInventario item = inventarioService.obtenerPorId(id);
 
@@ -175,6 +181,7 @@ public class InventarioController {
      * Actualizar item del inventario
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SuccessResponse<ItemInventarioResponse>> actualizarItem(
             @PathVariable Long id,
             @Valid @RequestBody ItemInventarioRequest request) {
@@ -202,6 +209,7 @@ public class InventarioController {
      * Eliminar item del inventario
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SuccessResponse<String>> eliminarItem(@PathVariable Long id) {
         inventarioService.eliminarItem(id);
         return ResponseEntity.ok(SuccessResponse.of("Item eliminado", "Item eliminado exitosamente del inventario"));

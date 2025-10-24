@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,6 +50,7 @@ public class UserController {
      * Obtener usuario por ID con estadísticas
      */
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<UserResponse> getUser(@PathVariable Long id) {
         User user = userService.findById(id);
 
@@ -75,6 +77,7 @@ public class UserController {
      * Actualizar datos del usuario
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     public ResponseEntity<SuccessResponse<UserResponse>> updateUser(
             @PathVariable Long id,
             @Valid @RequestBody UpdateUserRequest request) {
@@ -87,6 +90,7 @@ public class UserController {
      * Listar todos los usuarios (admin)
      */
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<User>> getAllUsers() {
         List<User> users = userService.findAll();
         return ResponseEntity.ok(users);
@@ -97,6 +101,7 @@ public class UserController {
      * Cambiar estado del usuario (activar/desactivar)
      */
     @PatchMapping("/{id}/toggle-status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SuccessResponse<UserResponse>> toggleUserStatus(@PathVariable Long id) {
 
         return ResponseEntity.ok(userService.toggleUserStatus(id));
@@ -107,6 +112,7 @@ public class UserController {
      * Eliminar usuario (soft delete)
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SuccessResponse<UserResponse>> deleteUser(@PathVariable Long id) {
         User user = userService.findById(id);
         user.setEnabled(false);

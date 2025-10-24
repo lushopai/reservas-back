@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,7 +36,7 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/disponibilidad")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:4200")
 public class DisponibilidadController {
 
     @Autowired
@@ -163,6 +164,7 @@ public class DisponibilidadController {
      * Bloquear fechas de una cabaña manualmente
      */
     @PostMapping("/cabanas/{id}/bloquear")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SuccessResponse<String>> bloquearFechasCabana(
             @PathVariable Long id,
             @Valid @RequestBody BloqueoFechasRequest request) {
@@ -202,6 +204,7 @@ public class DisponibilidadController {
      * Desbloquear fechas de una cabaña
      */
     @DeleteMapping("/cabanas/{id}/desbloquear")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SuccessResponse<String>> desbloquearFechasCabana(
             @PathVariable Long id,
             @RequestParam LocalDate fechaInicio,
@@ -232,6 +235,7 @@ public class DisponibilidadController {
      * Bloquear bloques horarios de un servicio
      */
     @PostMapping("/servicios/{id}/bloquear")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SuccessResponse<String>> bloquearBloqueServicio(
             @PathVariable Long id,
             @Valid @RequestBody BloqueoBloqueRequest request) {
@@ -254,6 +258,7 @@ public class DisponibilidadController {
      * Generar bloques horarios para un servicio
      */
     @PostMapping("/servicios/{id}/generar-bloques")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SuccessResponse<String>> generarBloquesHorarios(
             @PathVariable Long id,
             @Valid @RequestBody GenerarBloquesRequest request) {
@@ -304,6 +309,7 @@ public class DisponibilidadController {
      * Desbloquear un bloque específico
      */
     @DeleteMapping("/bloques/{id}/desbloquear")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SuccessResponse<String>> desbloquearBloque(@PathVariable Long id) {
         disponibilidadService.desbloquearBloque(id);
         return ResponseEntity.ok(SuccessResponse.of(
