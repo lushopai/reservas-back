@@ -10,10 +10,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @Table(name = "pagos")
-public class Pagos {
+@EqualsAndHashCode(callSuper = true)
+public class Pagos extends Auditable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

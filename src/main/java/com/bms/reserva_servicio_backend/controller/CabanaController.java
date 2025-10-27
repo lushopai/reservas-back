@@ -145,7 +145,7 @@ public class CabanaController {
                 .categoria(item.getCategoria())
                 .cantidadTotal(item.getCantidadTotal())
                 .cantidadDisponible(item.getCantidadDisponible())
-                .estadoItem(item.getEstadoItem())
+                .estadoItem(item.getEstadoItem() != null ? item.getEstadoItem().name() : null)
                 .esReservable(item.getEsReservable())
                 .precioReserva(item.getPrecioReserva())
                 .recursoId(item.getRecurso() != null ? item.getRecurso().getId() : null)

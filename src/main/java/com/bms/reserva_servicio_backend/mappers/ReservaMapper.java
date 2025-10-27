@@ -64,7 +64,7 @@ public class ReservaMapper {
                     .map(r -> ReservaResponse.ReservaResumenDTO.builder()
                         .id(r.getId())
                         .nombreRecurso(r.getRecurso() != null ? r.getRecurso().getNombre() : "N/A")
-                        .tipoReserva(r.getTipoReserva())
+                        .tipoReserva(r.getTipoReserva() != null ? r.getTipoReserva().name() : null)
                         .precioBase(r.getPrecioBase())
                         .precioItems(r.getPrecioItems())
                         .precioTotal(r.getPrecioTotal())
@@ -76,8 +76,8 @@ public class ReservaMapper {
 
         return ReservaResponse.builder()
             .id(reserva.getId())
-            .tipoReserva(reserva.getTipoReserva())
-            .estado(reserva.getEstado())
+            .tipoReserva(reserva.getTipoReserva() != null ? reserva.getTipoReserva().name() : null)
+            .estado(reserva.getEstado() != null ? reserva.getEstado().name() : null)
             .fechaReserva(reserva.getFechaReserva())
             .fechaInicio(reserva.getFechaInicio())
             .fechaFin(reserva.getFechaFin())
@@ -91,7 +91,8 @@ public class ReservaMapper {
             .itemsReservados(toItemsReservadosResponse(reserva.getItemsReservados()))
             .paqueteId(reserva.getPaquete() != null ? reserva.getPaquete().getId() : null)
             .nombrePaquete(reserva.getPaquete() != null ? reserva.getPaquete().getNombrePaquete() : null)
-            .estadoPaquete(reserva.getPaquete() != null ? reserva.getPaquete().getEstado() : null)
+            .estadoPaquete(reserva.getPaquete() != null && reserva.getPaquete().getEstado() != null
+                ? reserva.getPaquete().getEstado().name() : null)
             // ✅ Precios del paquete
             .precioTotalPaquete(precioTotalPaquete)
             .descuentoPaquete(descuentoPaquete)
@@ -119,7 +120,7 @@ public class ReservaMapper {
         return PaqueteResponse.builder()
             .id(paquete.getId())
             .nombrePaquete(paquete.getNombrePaquete())
-            .estado(paquete.getEstado())
+            .estado(paquete.getEstado() != null ? paquete.getEstado().name() : null)
             .fechaCreacion(paquete.getFechaCreacion())
             .fechaInicio(paquete.getFechaInicio())
             .fechaFin(paquete.getFechaFin())
@@ -150,7 +151,7 @@ public class ReservaMapper {
             .id(recurso.getId())
             .nombre(recurso.getNombre())
             .descripcion(recurso.getDescripcion())
-            .estado(recurso.getEstado())
+            .estado(recurso.getEstado() != null ? recurso.getEstado().name() : null)
             .precioPorUnidad(recurso.getPrecioPorUnidad())
             .imagenes(recurso.getImagenes())
             .imagenPrincipalUrl(imagenPrincipal);

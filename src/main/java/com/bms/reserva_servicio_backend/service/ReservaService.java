@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 
 import com.bms.reserva_servicio_backend.dto.ItemReservaDTO;
 import com.bms.reserva_servicio_backend.dto.PagoDTO;
+import com.bms.reserva_servicio_backend.enums.EstadoReserva;
+import com.bms.reserva_servicio_backend.enums.TipoReserva;
 import com.bms.reserva_servicio_backend.models.Cabana;
 import com.bms.reserva_servicio_backend.models.ItemsInventario;
 import com.bms.reserva_servicio_backend.models.Reserva;
@@ -101,8 +103,8 @@ public class ReservaService {
         reserva.setPrecioBase(precioBase);
         reserva.setPrecioItems(precioItems);
         reserva.setPrecioTotal(precioBase.add(precioItems));
-        reserva.setEstado("PENDIENTE");
-        reserva.setTipoReserva("CABAÑA_DIA");
+        reserva.setEstado(EstadoReserva.PENDIENTE);
+        reserva.setTipoReserva(TipoReserva.CABANA_DIA);
 
         reserva = reservaRepository.save(reserva);
 
@@ -161,8 +163,8 @@ public class ReservaService {
         reserva.setPrecioBase(precioBase);
         reserva.setPrecioItems(precioEquipamiento);
         reserva.setPrecioTotal(precioBase.add(precioEquipamiento));
-        reserva.setEstado("PENDIENTE");
-        reserva.setTipoReserva("SERVICIO_BLOQUE");
+        reserva.setEstado(EstadoReserva.PENDIENTE);
+        reserva.setTipoReserva(TipoReserva.SERVICIO_BLOQUE);
 
         reserva = reservaRepository.save(reserva);
 
@@ -184,7 +186,7 @@ public class ReservaService {
         Reserva reserva = reservaRepository.findById(reservaId)
                 .orElseThrow(() -> new EntityNotFoundException("Reserva no encontrada"));
 
-        if (!"PENDIENTE".equals(reserva.getEstado())) {
+        if (reserva.getEstado() != EstadoReserva.PENDIENTE) {
             throw new IllegalStateException("La reserva no está en estado pendiente");
         }
 
@@ -197,7 +199,7 @@ public class ReservaService {
         pagoService.procesarPago(reserva, pagoDTO);
 
         // Actualizar estado
-        reserva.setEstado("CONFIRMADA");
+        reserva.setEstado(EstadoReserva.CONFIRMADA);
         return reservaRepository.save(reserva);
     }
 
@@ -215,7 +217,7 @@ public class ReservaService {
         disponibilidadService.liberarRecurso(reserva);
 
         // Actualizar estado
-        reserva.setEstado("CANCELADA");
+        reserva.setEstado(EstadoReserva.CANCELADA);
         reserva.setObservaciones(motivo);
         reservaRepository.save(reserva);
     }
@@ -238,7 +240,7 @@ public class ReservaService {
     /**
      * Obtener reservas por estado
      */
-    public List<Reserva> obtenerPorEstado(String estado) {
+    public List<Reserva> obtenerPorEstado(EstadoReserva estado) {
         return reservaRepository.findByEstado(estado);
     }
 
@@ -252,14 +254,14 @@ public class ReservaService {
     /**
      * Cambiar estado de una reserva con validaciones
      */
-    public Reserva cambiarEstado(Long reservaId, String nuevoEstado, String motivo, String observaciones) {
+    public Reserva cambiarEstado(Long reservaId, EstadoReserva nuevoEstado, String motivo, String observaciones) {
         Reserva reserva = reservaRepository.findById(reservaId)
                 .orElseThrow(() -> new EntityNotFoundException("Reserva no encontrada"));
 
-        String estadoActual = reserva.getEstado();
+        EstadoReserva estadoActual = reserva.getEstado();
 
-        // Validar transición de estado
-        if (!esTransicionValida(estadoActual, nuevoEstado)) {
+        // Validar transición de estado usando el método del Enum
+        if (!estadoActual.puedeTransicionarA(nuevoEstado)) {
             throw new IllegalStateException(
                 String.format("No se puede cambiar de %s a %s", estadoActual, nuevoEstado)
             );
@@ -275,7 +277,7 @@ public class ReservaService {
         }
 
         // Si se cancela o completa, liberar recursos e inventario
-        if ("CANCELADA".equals(nuevoEstado)) {
+        if (nuevoEstado == EstadoReserva.CANCELADA) {
             inventarioService.liberarItems(reserva);
             disponibilidadService.liberarRecurso(reserva);
 
@@ -283,43 +285,13 @@ public class ReservaService {
                 String obsActuales = reserva.getObservaciones() != null ? reserva.getObservaciones() : "";
                 reserva.setObservaciones(obsActuales + "\nMotivo cancelación: " + motivo);
             }
-        } else if ("COMPLETADA".equals(nuevoEstado)) {
+        } else if (nuevoEstado == EstadoReserva.COMPLETADA) {
             // ✅ Al completar, también liberar items para que vuelvan a estar disponibles
             inventarioService.liberarItems(reserva);
             // No liberamos el recurso porque ya se usó, solo los items
         }
 
         return reservaRepository.save(reserva);
-    }
-
-    /**
-     * Validar si una transición de estado es válida
-     */
-    private boolean esTransicionValida(String estadoActual, String nuevoEstado) {
-        // Estados válidos
-        if (!List.of("BORRADOR", "PENDIENTE", "CONFIRMADA", "EN_CURSO", "COMPLETADA", "CANCELADA")
-                .contains(nuevoEstado)) {
-            return false;
-        }
-
-        // Desde CANCELADA o COMPLETADA no se puede cambiar
-        if ("CANCELADA".equals(estadoActual) || "COMPLETADA".equals(estadoActual)) {
-            return false;
-        }
-
-        // Transiciones válidas según flujo de negocio
-        switch (estadoActual) {
-            case "BORRADOR":
-                return List.of("PENDIENTE", "CANCELADA").contains(nuevoEstado);
-            case "PENDIENTE":
-                return List.of("CONFIRMADA", "CANCELADA").contains(nuevoEstado);
-            case "CONFIRMADA":
-                return List.of("EN_CURSO", "CANCELADA").contains(nuevoEstado);
-            case "EN_CURSO":
-                return List.of("COMPLETADA", "CANCELADA").contains(nuevoEstado);
-            default:
-                return false;
-        }
     }
 
     /**

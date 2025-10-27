@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.bms.reserva_servicio_backend.enums.EstadoRecurso;
+import com.bms.reserva_servicio_backend.enums.EstadoReserva;
 import com.bms.reserva_servicio_backend.models.ServicioEntretencion;
 import com.bms.reserva_servicio_backend.repository.ServicioEntretencionRepository;
 import com.bms.reserva_servicio_backend.request.ServicioRequest;
@@ -24,6 +26,9 @@ public class ServicioServiceImpl implements ServicioService {
 
     @Autowired
     private ServicioEntretencionRepository servicioRepository;
+
+    @Autowired
+    private com.bms.reserva_servicio_backend.repository.ReservaRepository reservaRepository;
 
     @Override
     public SuccessResponse<ServicioResponse> crearServicio(ServicioRequest request) {
@@ -66,7 +71,8 @@ public class ServicioServiceImpl implements ServicioService {
     @Override
     @Transactional(readOnly = true)
     public List<ServicioResponse> obtenerPorEstado(String estado) {
-        return servicioRepository.findByEstado(estado).stream()
+        EstadoRecurso estadoEnum = EstadoRecurso.valueOf(estado.toUpperCase());
+        return servicioRepository.findByEstado(estadoEnum).stream()
                 .map(this::mapearEntidadAResponse)
                 .collect(Collectors.toList());
     }
@@ -83,7 +89,7 @@ public class ServicioServiceImpl implements ServicioService {
     @Transactional(readOnly = true)
     public List<ServicioResponse> obtenerDisponibles(LocalDate fecha) {
         // Obtener servicios con estado DISPONIBLE
-        return servicioRepository.findByEstado("DISPONIBLE").stream()
+        return servicioRepository.findByEstado(EstadoRecurso.DISPONIBLE).stream()
                 .map(this::mapearEntidadAResponse)
                 .collect(Collectors.toList());
     }
@@ -147,9 +153,10 @@ public class ServicioServiceImpl implements ServicioService {
                 .orElseThrow(() -> new EntityNotFoundException("Servicio no encontrado con ID: " + id));
 
         // Si hay reservas activas y se intenta poner en mantenimiento, validar
-        if ("MANTENIMIENTO".equals(nuevoEstado) || "FUERA_SERVICIO".equals(nuevoEstado)) {
-            long reservasActivas = servicio.getReservas().stream()
-                    .filter(r -> "CONFIRMADA".equals(r.getEstado()) || "PENDIENTE".equals(r.getEstado()))
+        EstadoRecurso estadoEnum = EstadoRecurso.valueOf(nuevoEstado.toUpperCase());
+        if (estadoEnum == EstadoRecurso.MANTENIMIENTO || estadoEnum == EstadoRecurso.FUERA_SERVICIO) {
+            long reservasActivas = reservaRepository.findByRecursoId(id).stream()
+                    .filter(r -> r.getEstado() == EstadoReserva.CONFIRMADA || r.getEstado() == EstadoReserva.PENDIENTE)
                     .count();
 
             if (reservasActivas > 0) {
@@ -160,7 +167,7 @@ public class ServicioServiceImpl implements ServicioService {
             }
         }
 
-        servicio.setEstado(nuevoEstado);
+        servicio.setEstado(estadoEnum);
         ServicioEntretencion servicioActualizado = servicioRepository.save(servicio);
 
         ServicioResponse servicioResponse = mapearEntidadAResponse(servicioActualizado);
@@ -181,8 +188,8 @@ public class ServicioServiceImpl implements ServicioService {
                 .orElseThrow(() -> new EntityNotFoundException("Servicio no encontrado con ID: " + id));
 
         // Verificar que no tenga reservas activas
-        long reservasActivas = servicio.getReservas().stream()
-                .filter(r -> "CONFIRMADA".equals(r.getEstado()) || "PENDIENTE".equals(r.getEstado()))
+        long reservasActivas = reservaRepository.findByRecursoId(id).stream()
+                .filter(r -> r.getEstado() == EstadoReserva.CONFIRMADA || r.getEstado() == EstadoReserva.PENDIENTE)
                 .count();
 
         if (reservasActivas > 0) {
@@ -193,7 +200,7 @@ public class ServicioServiceImpl implements ServicioService {
         }
 
         // Soft delete: cambiar estado a FUERA_SERVICIO
-        servicio.setEstado("FUERA_SERVICIO");
+        servicio.setEstado(EstadoRecurso.FUERA_SERVICIO);
         servicioRepository.save(servicio);
 
         response.setSuccess(true);
@@ -217,7 +224,18 @@ public class ServicioServiceImpl implements ServicioService {
         servicio.setNombre(request.getNombre());
         servicio.setDescripcion(request.getDescripcion());
         servicio.setPrecioPorUnidad(request.getPrecioPorUnidad());
-        servicio.setEstado(request.getEstado());
+
+        // Convertir String a Enum
+        if (request.getEstado() != null) {
+            try {
+                servicio.setEstado(EstadoRecurso.valueOf(request.getEstado().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                servicio.setEstado(EstadoRecurso.DISPONIBLE);
+            }
+        } else {
+            servicio.setEstado(EstadoRecurso.DISPONIBLE);
+        }
+
         servicio.setTipoServicio(request.getTipoServicio());
         servicio.setCapacidadMaxima(request.getCapacidadMaxima());
         servicio.setDuracionBloqueMinutos(request.getDuracionBloqueMinutos());
@@ -225,18 +243,21 @@ public class ServicioServiceImpl implements ServicioService {
     }
 
     private ServicioResponse mapearEntidadAResponse(ServicioEntretencion servicio) {
+        // Obtener el total de reservas desde el repositorio
+        int totalReservas = reservaRepository.findByRecursoId(servicio.getId()).size();
+
         return ServicioResponse.builder()
                 .id(servicio.getId())
                 .nombre(servicio.getNombre())
                 .descripcion(servicio.getDescripcion())
                 .precioPorUnidad(servicio.getPrecioPorUnidad())
-                .estado(servicio.getEstado())
+                .estado(servicio.getEstado() != null ? servicio.getEstado().name() : null)
                 .tipoServicio(servicio.getTipoServicio())
                 .capacidadMaxima(servicio.getCapacidadMaxima())
                 .duracionBloqueMinutos(servicio.getDuracionBloqueMinutos())
                 .requiereSupervision(servicio.getRequiereSupervision())
-                .totalReservas(servicio.getReservas() != null ? servicio.getReservas().size() : 0)
-                .disponibleHoy("DISPONIBLE".equals(servicio.getEstado()))
+                .totalReservas(totalReservas)
+                .disponibleHoy(servicio.getEstado() == EstadoRecurso.DISPONIBLE)
                 .bloquesDisponibles(servicio.getBloquesDisponibles() != null ? servicio.getBloquesDisponibles().size() : 0)
                 .itemsInventario(servicio.getInventario() != null ? servicio.getInventario().size() : 0)
                 .imagenes(servicio.getImagenes())
@@ -244,9 +265,12 @@ public class ServicioServiceImpl implements ServicioService {
     }
 
     private boolean esEstadoValido(String estado) {
-        return "DISPONIBLE".equals(estado) ||
-               "MANTENIMIENTO".equals(estado) ||
-               "FUERA_SERVICIO".equals(estado);
+        try {
+            EstadoRecurso.valueOf(estado.toUpperCase());
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 
 }

@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bms.reserva_servicio_backend.enums.EstadoPaquete;
+import com.bms.reserva_servicio_backend.enums.EstadoReserva;
 import com.bms.reserva_servicio_backend.models.Pagos;
 import com.bms.reserva_servicio_backend.models.PaqueteReserva;
 import com.bms.reserva_servicio_backend.models.Reserva;
@@ -83,17 +85,17 @@ public class PagoController {
         }
 
         // Validar que la reserva esté en estado PENDIENTE o CONFIRMADA
-        if (!"PENDIENTE".equals(reserva.getEstado()) && !"CONFIRMADA".equals(reserva.getEstado())) {
+        if (reserva.getEstado() != EstadoReserva.PENDIENTE && reserva.getEstado() != EstadoReserva.CONFIRMADA) {
             return ResponseEntity.badRequest()
-                    .body(SuccessResponse.of(null, "La reserva no puede ser pagada en su estado actual: " + reserva.getEstado()));
+                    .body(SuccessResponse.of(null, "La reserva no puede ser pagada en su estado actual: " + reserva.getEstado().name()));
         }
 
         // Procesar pago
         Pagos pago = pagoService.procesarPago(reserva, request.toDTO());
 
         // Actualizar estado de reserva a CONFIRMADA si estaba PENDIENTE
-        if ("PENDIENTE".equals(reserva.getEstado())) {
-            reserva.setEstado("CONFIRMADA");
+        if (reserva.getEstado() == EstadoReserva.PENDIENTE) {
+            reserva.setEstado(EstadoReserva.CONFIRMADA);
             reservaRepository.save(reserva);
         }
 
@@ -124,22 +126,20 @@ public class PagoController {
                     .body(SuccessResponse.of(null, "El monto no coincide con el total del paquete"));
         }
 
-        // Validar que el paquete esté en estado BORRADOR, PENDIENTE o CONFIRMADA
-        if (!"BORRADOR".equals(paquete.getEstado()) &&
-            !"PENDIENTE".equals(paquete.getEstado()) &&
-            !"CONFIRMADA".equals(paquete.getEstado())) {
+        // Validar que el paquete esté en estado pagable (BORRADOR, PENDIENTE o ACTIVO)
+        if (paquete.getEstado() != EstadoPaquete.BORRADOR &&
+            paquete.getEstado() != EstadoPaquete.PENDIENTE &&
+            paquete.getEstado() != EstadoPaquete.ACTIVO) {
             return ResponseEntity.badRequest()
-                    .body(SuccessResponse.of(null, "El paquete no puede ser pagado en su estado actual: " + paquete.getEstado()));
+                    .body(SuccessResponse.of(null, "El paquete no puede ser pagado en su estado actual: " + paquete.getEstado().name()));
         }
 
         // Procesar pago
         Pagos pago = pagoService.procesarPagoPaquete(paquete, request.toDTO());
 
-        // Actualizar estado del paquete a CONFIRMADA si estaba en BORRADOR o PENDIENTE
-        if ("BORRADOR".equals(paquete.getEstado()) || "PENDIENTE".equals(paquete.getEstado())) {
-            paquete.setEstado("CONFIRMADA");
-            paqueteReservaRepository.save(paquete);
-        }
+        // Actualizar estado del paquete a ACTIVO después del pago
+        paquete.setEstado(EstadoPaquete.ACTIVO);
+        paqueteReservaRepository.save(paquete);
 
         // Construir response
         PagoResponse response = mapToPagoResponsePaquete(pago);
@@ -216,7 +216,8 @@ public class PagoController {
                 .nombreRecurso(pago.getReserva() != null && pago.getReserva().getRecurso() != null
                         ? pago.getReserva().getRecurso().getNombre()
                         : null)
-                .tipoReserva(pago.getReserva() != null ? pago.getReserva().getTipoReserva() : null)
+                .tipoReserva(pago.getReserva() != null && pago.getReserva().getTipoReserva() != null
+                        ? pago.getReserva().getTipoReserva().name() : null)
                 .build();
     }
 

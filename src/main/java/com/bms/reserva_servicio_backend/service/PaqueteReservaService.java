@@ -11,6 +11,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.bms.reserva_servicio_backend.dto.PagoDTO;
 import com.bms.reserva_servicio_backend.dto.PaqueteReservaDTO;
 import com.bms.reserva_servicio_backend.dto.ServicioReservaDTO;
+import com.bms.reserva_servicio_backend.enums.EstadoPaquete;
+import com.bms.reserva_servicio_backend.enums.EstadoReserva;
 import com.bms.reserva_servicio_backend.models.PaqueteReserva;
 import com.bms.reserva_servicio_backend.models.Reserva;
 import com.bms.reserva_servicio_backend.repository.PaqueteReservaRepository;
@@ -49,9 +51,16 @@ public class PaqueteReservaService {
         paquete.setFechaCreacion(LocalDateTime.now()); // Establecer fecha de creación
         paquete.setFechaInicio(paqueteDTO.getFechaInicio());
         paquete.setFechaFin(paqueteDTO.getFechaFin());
-        paquete.setEstado("PENDIENTE"); // Estado inicial para permitir el pago
+        paquete.setEstado(EstadoPaquete.BORRADOR); // Estado inicial para permitir modificaciones antes del pago
         paquete.setNotasEspeciales(paqueteDTO.getNotasEspeciales());
 
+        // IMPORTANTE: Inicializar precios en cero para cumplir con validaciones @NotNull
+        // Se calcularán correctamente después de crear las reservas
+        paquete.setPrecioTotal(BigDecimal.ZERO);
+        paquete.setDescuento(BigDecimal.ZERO);
+        paquete.setPrecioFinal(BigDecimal.ZERO);
+
+        // Guardar paquete inicial con precios en cero
         paquete = paqueteRepository.save(paquete);
 
         BigDecimal precioTotal = BigDecimal.ZERO;
@@ -83,10 +92,13 @@ public class PaqueteReservaService {
             }
         }
 
-        // Sin descuentos - el precio final es igual al precio total
+        // Actualizar con los precios calculados reales
         paquete.setPrecioTotal(precioTotal);
         paquete.setDescuento(BigDecimal.ZERO);
         paquete.setPrecioFinal(precioTotal);
+
+        // Cambiar estado a PENDIENTE ya que todas las reservas fueron creadas exitosamente
+        paquete.setEstado(EstadoPaquete.PENDIENTE);
 
         return paqueteRepository.save(paquete);
     }
@@ -103,10 +115,10 @@ public class PaqueteReservaService {
 
         // Confirmar todas las reservas del paquete
         for (Reserva reserva : paquete.getReservas()) {
-            reserva.setEstado("CONFIRMADA");
+            reserva.setEstado(EstadoReserva.CONFIRMADA);
         }
 
-        paquete.setEstado("CONFIRMADA");
+        paquete.setEstado(EstadoPaquete.ACTIVO);
         return paqueteRepository.save(paquete);
     }
 
@@ -128,7 +140,7 @@ public class PaqueteReservaService {
     /**
      * Obtener paquetes por estado
      */
-    public List<PaqueteReserva> obtenerPorEstado(String estado) {
+    public List<PaqueteReserva> obtenerPorEstado(EstadoPaquete estado) {
         return paqueteRepository.findByEstado(estado);
     }
 
@@ -138,7 +150,7 @@ public class PaqueteReservaService {
     public PaqueteReserva modificarPaquete(Long id, PaqueteReservaDTO dto) {
         PaqueteReserva paquete = obtenerPorId(id);
 
-        if (!"BORRADOR".equals(paquete.getEstado())) {
+        if (paquete.getEstado() != EstadoPaquete.BORRADOR) {
             throw new IllegalStateException("Solo se pueden modificar paquetes en borrador");
         }
 

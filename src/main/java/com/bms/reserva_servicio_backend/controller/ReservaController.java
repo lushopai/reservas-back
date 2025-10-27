@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.bms.reserva_servicio_backend.enums.EstadoReserva;
 import com.bms.reserva_servicio_backend.mappers.ReservaMapper;
 import com.bms.reserva_servicio_backend.models.Reserva;
 import com.bms.reserva_servicio_backend.request.CambioEstadoRequest;
@@ -177,7 +178,8 @@ public class ReservaController {
 
         List<Reserva> reservas;
         if (estado != null && !estado.isEmpty()) {
-            reservas = reservaService.obtenerPorEstado(estado);
+            EstadoReserva estadoEnum = EstadoReserva.valueOf(estado.toUpperCase());
+            reservas = reservaService.obtenerPorEstado(estadoEnum);
         } else {
             reservas = reservaService.obtenerTodas();
         }
@@ -198,9 +200,11 @@ public class ReservaController {
             @PathVariable Long id,
             @Valid @RequestBody CambioEstadoRequest request) {
 
+        EstadoReserva nuevoEstado = EstadoReserva.valueOf(request.getNuevoEstado().toUpperCase());
+
         Reserva reserva = reservaService.cambiarEstado(
                 id,
-                request.getNuevoEstado(),
+                nuevoEstado,
                 request.getMotivo(),
                 request.getObservaciones()
         );

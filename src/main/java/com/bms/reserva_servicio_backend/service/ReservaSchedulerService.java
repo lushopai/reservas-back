@@ -10,6 +10,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.bms.reserva_servicio_backend.enums.EstadoReserva;
 import com.bms.reserva_servicio_backend.models.Reserva;
 import com.bms.reserva_servicio_backend.repository.ReservaRepository;
 
@@ -46,7 +47,7 @@ public class ReservaSchedulerService {
             // Buscar reservas EN_CURSO o CONFIRMADA que ya finalizaron
             List<Reserva> reservasFinalizadas = reservaRepository
                 .findByEstadoInAndFechaFinBefore(
-                    List.of("EN_CURSO", "CONFIRMADA"),
+                    List.of(EstadoReserva.EN_CURSO, EstadoReserva.CONFIRMADA),
                     ahora
                 );
 
@@ -63,8 +64,8 @@ public class ReservaSchedulerService {
             for (Reserva reserva : reservasFinalizadas) {
                 try {
                     // Cambiar estado a COMPLETADA
-                    String estadoAnterior = reserva.getEstado();
-                    reserva.setEstado("COMPLETADA");
+                    EstadoReserva estadoAnterior = reserva.getEstado();
+                    reserva.setEstado(EstadoReserva.COMPLETADA);
                     reservaRepository.save(reserva);
 
                     // Liberar items del inventario
@@ -105,7 +106,7 @@ public class ReservaSchedulerService {
 
             // Buscar reservas CONFIRMADA cuya fecha de inicio ya pasó pero aún no terminaron
             List<Reserva> reservasParaIniciar = reservaRepository
-                .findByEstadoAndFechaInicioBefore("CONFIRMADA", ahora);
+                .findByEstadoAndFechaInicioBefore(EstadoReserva.CONFIRMADA, ahora);
 
             // Filtrar solo las que no han terminado
             List<Reserva> reservasEnCurso = reservasParaIniciar.stream()
@@ -122,7 +123,7 @@ public class ReservaSchedulerService {
             int actualizadas = 0;
             for (Reserva reserva : reservasEnCurso) {
                 try {
-                    reserva.setEstado("EN_CURSO");
+                    reserva.setEstado(EstadoReserva.EN_CURSO);
                     reservaRepository.save(reserva);
                     logger.info("✅ Reserva #{} actualizada a EN_CURSO", reserva.getId());
                     actualizadas++;

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.bms.reserva_servicio_backend.enums.EstadoReserva;
 import com.bms.reserva_servicio_backend.models.Cabana;
 import com.bms.reserva_servicio_backend.models.Pagos;
 import com.bms.reserva_servicio_backend.models.Reserva;
@@ -55,11 +56,11 @@ public class DashboardService {
 
         // Estadísticas de reservas
         stats.setTotalReservas(reservaRepository.count());
-        stats.setReservasPendientes(contarReservasPorEstado("PENDIENTE"));
-        stats.setReservasConfirmadas(contarReservasPorEstado("CONFIRMADA"));
-        stats.setReservasCanceladas(contarReservasPorEstado("CANCELADA"));
-        stats.setReservasCompletadas(contarReservasPorEstado("COMPLETADA"));
-        stats.setReservasEnCurso(contarReservasPorEstado("EN_CURSO"));
+        stats.setReservasPendientes(contarReservasPorEstado(EstadoReserva.PENDIENTE));
+        stats.setReservasConfirmadas(contarReservasPorEstado(EstadoReserva.CONFIRMADA));
+        stats.setReservasCanceladas(contarReservasPorEstado(EstadoReserva.CANCELADA));
+        stats.setReservasCompletadas(contarReservasPorEstado(EstadoReserva.COMPLETADA));
+        stats.setReservasEnCurso(contarReservasPorEstado(EstadoReserva.EN_CURSO));
 
         // Estadísticas de recursos
         stats.setTotalCabanas(cabanaRepository.count());
@@ -96,11 +97,8 @@ public class DashboardService {
                 .count();
     }
 
-    private Long contarReservasPorEstado(String estado) {
-        List<Reserva> reservas = reservaRepository.findAll();
-        return reservas.stream()
-                .filter(r -> estado.equals(r.getEstado()))
-                .count();
+    private Long contarReservasPorEstado(EstadoReserva estado) {
+        return reservaRepository.findByEstado(estado).stream().count();
     }
 
     private Long contarCabanasDisponibles() {
@@ -116,7 +114,7 @@ public class DashboardService {
                                        r.getRecurso().getId().equals(cabana.getId()) &&
                                        r.getFechaInicio().isBefore(hoy.plusDays(1)) &&
                                        r.getFechaFin().isAfter(hoy) &&
-                                       !"CANCELADA".equals(r.getEstado()))
+                                       r.getEstado() != EstadoReserva.CANCELADA)
                             .collect(Collectors.toList());
                     return reservasActivas.isEmpty();
                 })
@@ -249,7 +247,8 @@ public class DashboardService {
         if (reserva.getPaquete() != null) {
             paqueteId = reserva.getPaquete().getId();
             nombrePaquete = reserva.getPaquete().getNombrePaquete();
-            estadoPaquete = reserva.getPaquete().getEstado();
+            estadoPaquete = reserva.getPaquete().getEstado() != null
+                ? reserva.getPaquete().getEstado().name() : null;
             precioTotalPaquete = reserva.getPaquete().getPrecioTotal();
             descuentoPaquete = reserva.getPaquete().getDescuento();
             precioFinalPaquete = reserva.getPaquete().getPrecioFinal();
@@ -261,7 +260,7 @@ public class DashboardService {
                 .emailUsuario(emailUsuario)
                 .nombreRecurso(nombreRecurso)
                 .fechaReserva(fechaReserva.toString())
-                .estado(reserva.getEstado())
+                .estado(reserva.getEstado() != null ? reserva.getEstado().name() : null)
                 .precioTotal(reserva.getPrecioTotal())
                 // ✅ Campos de paquete
                 .paqueteId(paqueteId)

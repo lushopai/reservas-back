@@ -9,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.bms.reserva_servicio_backend.dto.ItemReservaDTO;
+import com.bms.reserva_servicio_backend.enums.EstadoItem;
+import com.bms.reserva_servicio_backend.enums.EstadoReserva;
 import com.bms.reserva_servicio_backend.models.ItemReservado;
 import com.bms.reserva_servicio_backend.models.ItemsInventario;
 import com.bms.reserva_servicio_backend.models.MovimientoInventario.TipoMovimiento;
@@ -120,7 +122,7 @@ public class InventarioService {
         // Obtener items reservados de esta reserva
         List<ItemReservado> itemsReservados = itemReservadoRepository.findByReservaId(reserva.getId());
 
-        String estadoReserva = reserva.getEstado();
+        EstadoReserva estadoReserva = reserva.getEstado();
         TipoMovimiento tipoMovimiento = TipoMovimiento.DEVOLUCION;
 
         for (ItemReservado itemReservado : itemsReservados) {
@@ -133,7 +135,7 @@ public class InventarioService {
             // ✅ Registrar movimiento de DEVOLUCION
             String observacion = String.format(
                 "Devolución por %s - Reserva #%d",
-                estadoReserva.equals("CANCELADA") ? "cancelación" : "finalización",
+                estadoReserva == EstadoReserva.CANCELADA ? "cancelación" : "finalización",
                 reserva.getId()
             );
 
@@ -242,7 +244,18 @@ public class InventarioService {
         item.setNombre(request.getNombre());
         item.setCategoria(request.getCategoria());
         item.setCantidadTotal(request.getCantidadTotal());
-        item.setEstadoItem(request.getEstadoItem() != null ? request.getEstadoItem() : "BUENO");
+
+        // Convertir String a Enum para estadoItem
+        if (request.getEstadoItem() != null) {
+            try {
+                item.setEstadoItem(EstadoItem.valueOf(request.getEstadoItem().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                item.setEstadoItem(EstadoItem.BUENO);
+            }
+        } else {
+            item.setEstadoItem(EstadoItem.BUENO);
+        }
+
         item.setEsReservable(request.getEsReservable());
         item.setPrecioReserva(request.getPrecioReserva());
 
@@ -264,8 +277,8 @@ public class InventarioService {
         
         // Verificar que no tenga reservas activas
         List<ItemReservado> reservasActivas = itemReservadoRepository
-            .findByItemIdAndReservaEstado(id, "CONFIRMADA");
-        
+            .findByItemIdAndReservaEstado(id, EstadoReserva.CONFIRMADA);
+
         if (!reservasActivas.isEmpty()) {
             throw new IllegalStateException("No se puede eliminar un item con reservas activas");
         }

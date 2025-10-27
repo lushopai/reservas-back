@@ -90,48 +90,66 @@ public class SpringSecurityConfig {
                         // ============================================
                         // RESERVAS - Según rol
                         // ============================================
-                        
-                        // Crear reservas - Cualquier usuario autenticado
-                        .requestMatchers(HttpMethod.POST, "/api/reservas/cabana").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/reservas/servicio").authenticated()
-                        
-                        // Ver reservas propias - Usuario autenticado
-                        .requestMatchers(HttpMethod.GET, "/api/reservas/cliente/*").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/api/reservas/*").authenticated()
-                        
-                        // Confirmar y cancelar - Usuario autenticado (solo sus propias reservas)
-                        .requestMatchers(HttpMethod.PUT, "/api/reservas/*/confirmar").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/reservas/*").authenticated()
-                        
-                        // Ver TODAS las reservas - Solo ADMIN
+
+                        // Ver TODAS las reservas (lista) - Solo ADMIN
                         .requestMatchers(HttpMethod.GET, "/api/reservas").hasRole("ADMIN")
+
+                        // Crear reservas - Cualquier usuario autenticado (USER o ADMIN)
+                        .requestMatchers(HttpMethod.POST, "/api/reservas/cabana").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/reservas/servicio").hasAnyRole("USER", "ADMIN")
+
+                        // Ver reservas por cliente - Usuario autenticado
+                        .requestMatchers(HttpMethod.GET, "/api/reservas/cliente/**").authenticated()
+
+                        // Ver detalle de reserva específica - Usuario autenticado
+                        .requestMatchers(HttpMethod.GET, "/api/reservas/*").authenticated()
+
+                        // Confirmar reserva - Usuario autenticado (valida que sea su reserva en el servicio)
+                        .requestMatchers(HttpMethod.PUT, "/api/reservas/*/confirmar").hasAnyRole("USER", "ADMIN")
+
+                        // Cancelar reserva - Usuario autenticado (valida que sea su reserva en el servicio)
+                        .requestMatchers(HttpMethod.DELETE, "/api/reservas/*").hasAnyRole("USER", "ADMIN")
                         
                         // ============================================
                         // PAQUETES - Según rol
                         // ============================================
-                        
-                        // Crear paquetes - Usuario autenticado
-                        .requestMatchers(HttpMethod.POST, "/api/paquetes").authenticated()
-                        
-                        // Ver, confirmar y cancelar paquetes - Usuario autenticado
-                        .requestMatchers(HttpMethod.GET, "/api/paquetes/*").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/paquetes/*/confirmar").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/paquetes/*").authenticated()
-                        
-                        // Modificar paquetes - Usuario autenticado
-                        .requestMatchers(HttpMethod.PUT, "/api/paquetes/*").authenticated()
-                        
-                        // Ver TODOS los paquetes - Solo ADMIN
+
+                        // Ver TODOS los paquetes (lista) - Solo ADMIN
                         .requestMatchers(HttpMethod.GET, "/api/paquetes").hasRole("ADMIN")
+
+                        // Crear paquetes - Usuario autenticado
+                        .requestMatchers(HttpMethod.POST, "/api/paquetes").hasAnyRole("USER", "ADMIN")
+
+                        // Ver detalle de paquete - Usuario autenticado
+                        .requestMatchers(HttpMethod.GET, "/api/paquetes/*").authenticated()
+
+                        // Modificar paquetes - Usuario autenticado
+                        .requestMatchers(HttpMethod.PUT, "/api/paquetes/*").hasAnyRole("USER", "ADMIN")
+
+                        // Confirmar paquete - Usuario autenticado
+                        .requestMatchers(HttpMethod.PUT, "/api/paquetes/*/confirmar").hasAnyRole("USER", "ADMIN")
+
+                        // Cancelar paquete - Usuario autenticado
+                        .requestMatchers(HttpMethod.DELETE, "/api/paquetes/*").hasAnyRole("USER", "ADMIN")
                         
                         // ============================================
-                        // INVENTARIO - Solo ADMIN
+                        // INVENTARIO - Según rol
                         // ============================================
-                        
+
+                        // IMPORTANTE: Las reglas más específicas van primero
+                        // GET /api/inventario/recurso/** ya está definido como permitAll() arriba (línea 70)
+                        // GET /api/inventario/*/disponibilidad ya está definido como permitAll() arriba (línea 71)
+
+                        // Ver lista de items - Usuario autenticado (necesario para crear reservas)
+                        .requestMatchers(HttpMethod.GET, "/api/inventario").authenticated()
+
                         // Agregar, modificar y eliminar items - Solo ADMIN
                         .requestMatchers(HttpMethod.POST, "/api/inventario").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/inventario/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/inventario/*").hasRole("ADMIN")
+
+                        // Ver detalle de item individual - Usuario autenticado
+                        .requestMatchers(HttpMethod.GET, "/api/inventario/*").authenticated()
                         
                         // ============================================
                         // RECURSOS (Cabañas y Servicios) - Solo ADMIN
@@ -163,11 +181,21 @@ public class SpringSecurityConfig {
 
                         .requestMatchers("/actuator/health").permitAll()
                         .requestMatchers("/actuator/**").hasRole("ADMIN")
-                        
+
+                        // ============================================
+                        // SWAGGER / OpenAPI - Acceso público
+                        // ============================================
+
+                        .requestMatchers("/swagger-ui/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-resources/**").permitAll()
+                        .requestMatchers("/webjars/**").permitAll()
+
                         // ============================================
                         // TODO LO DEMÁS - Requiere autenticación
                         // ============================================
-                        
+
                         .anyRequest().authenticated()
                 )
                 .addFilter(new JwtAuthenticationFilter(authenticationManager(), userService))

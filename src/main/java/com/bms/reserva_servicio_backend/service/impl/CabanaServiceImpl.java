@@ -9,6 +9,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.bms.reserva_servicio_backend.enums.EstadoRecurso;
+import com.bms.reserva_servicio_backend.enums.EstadoReserva;
 import com.bms.reserva_servicio_backend.models.Cabana;
 import com.bms.reserva_servicio_backend.repository.CabanaRepository;
 import com.bms.reserva_servicio_backend.request.CabanaRequest;
@@ -28,6 +30,9 @@ public class CabanaServiceImpl implements CabanaService {
 
     @Autowired
     private DisponibilidadService disponibilidadService;
+
+    @Autowired
+    private com.bms.reserva_servicio_backend.repository.ReservaRepository reservaRepository;
 
     @Override
     public SuccessResponse<CabanaResponse> crearCabana(CabanaRequest request) {
@@ -70,7 +75,9 @@ public class CabanaServiceImpl implements CabanaService {
     @Override
     @Transactional(readOnly = true)
     public List<CabanaResponse> obtenerPorEstado(String estado) {
-        return cabanaRepository.findByEstado(estado).stream()
+        // Convertir String a Enum
+        EstadoRecurso estadoEnum = EstadoRecurso.valueOf(estado.toUpperCase());
+        return cabanaRepository.findByEstado(estadoEnum).stream()
                 .map(this::mapearEntidadAResponse)
                 .collect(Collectors.toList());
     }
@@ -79,7 +86,7 @@ public class CabanaServiceImpl implements CabanaService {
     @Transactional(readOnly = true)
     public List<CabanaResponse> obtenerDisponibles(LocalDate fechaInicio, LocalDate fechaFin) {
         // Obtener cabañas con estado DISPONIBLE
-        List<Cabana> cabanasDisponibles = cabanaRepository.findByEstado("DISPONIBLE");
+        List<Cabana> cabanasDisponibles = cabanaRepository.findByEstado(EstadoRecurso.DISPONIBLE);
 
         // Filtrar por disponibilidad en las fechas
         return cabanasDisponibles.stream()
@@ -148,9 +155,10 @@ public class CabanaServiceImpl implements CabanaService {
                 .orElseThrow(() -> new EntityNotFoundException("Cabaña no encontrada con ID: " + id));
 
         // Si hay reservas activas y se intenta poner en mantenimiento, validar
-        if ("MANTENIMIENTO".equals(nuevoEstado) || "FUERA_SERVICIO".equals(nuevoEstado)) {
-            long reservasActivas = cabana.getReservas().stream()
-                    .filter(r -> "CONFIRMADA".equals(r.getEstado()) || "PENDIENTE".equals(r.getEstado()))
+        EstadoRecurso estadoEnum = EstadoRecurso.valueOf(nuevoEstado.toUpperCase());
+        if (estadoEnum == EstadoRecurso.MANTENIMIENTO || estadoEnum == EstadoRecurso.FUERA_SERVICIO) {
+            long reservasActivas = reservaRepository.findByRecursoId(id).stream()
+                    .filter(r -> r.getEstado() == EstadoReserva.CONFIRMADA || r.getEstado() == EstadoReserva.PENDIENTE)
                     .count();
 
             if (reservasActivas > 0) {
@@ -161,7 +169,7 @@ public class CabanaServiceImpl implements CabanaService {
             }
         }
 
-        cabana.setEstado(nuevoEstado);
+        cabana.setEstado(estadoEnum);
         Cabana cabanaActualizada = cabanaRepository.save(cabana);
 
         CabanaResponse cabanaResponse = mapearEntidadAResponse(cabanaActualizada);
@@ -182,8 +190,8 @@ public class CabanaServiceImpl implements CabanaService {
                 .orElseThrow(() -> new EntityNotFoundException("Cabaña no encontrada con ID: " + id));
 
         // Verificar que no tenga reservas activas
-        long reservasActivas = cabana.getReservas().stream()
-                .filter(r -> "CONFIRMADA".equals(r.getEstado()) || "PENDIENTE".equals(r.getEstado()))
+        long reservasActivas = reservaRepository.findByRecursoId(id).stream()
+                .filter(r -> r.getEstado() == EstadoReserva.CONFIRMADA || r.getEstado() == EstadoReserva.PENDIENTE)
                 .count();
 
         if (reservasActivas > 0) {
@@ -194,7 +202,7 @@ public class CabanaServiceImpl implements CabanaService {
         }
 
         // Soft delete: cambiar estado a FUERA_SERVICIO
-        cabana.setEstado("FUERA_SERVICIO");
+        cabana.setEstado(EstadoRecurso.FUERA_SERVICIO);
         cabanaRepository.save(cabana);
 
         response.setSuccess(true);
@@ -218,7 +226,10 @@ public class CabanaServiceImpl implements CabanaService {
         cabana.setNombre(request.getNombre());
         cabana.setDescripcion(request.getDescripcion());
         cabana.setPrecioPorUnidad(request.getPrecioPorUnidad());
-        cabana.setEstado(request.getEstado());
+        // Convertir String a Enum
+        if (request.getEstado() != null) {
+            cabana.setEstado(EstadoRecurso.valueOf(request.getEstado().toUpperCase()));
+        }
         cabana.setCapacidadPersonas(request.getCapacidadPersonas());
         cabana.setNumeroHabitaciones(request.getNumeroHabitaciones());
         cabana.setNumeroBanos(request.getNumeroBanos());
@@ -228,29 +239,35 @@ public class CabanaServiceImpl implements CabanaService {
     }
 
     private CabanaResponse mapearEntidadAResponse(Cabana cabana) {
+        // Contar reservas desde el repositorio
+        long totalReservas = reservaRepository.findByRecursoId(cabana.getId()).size();
+
         return CabanaResponse.builder()
                 .id(cabana.getId())
                 .nombre(cabana.getNombre())
                 .descripcion(cabana.getDescripcion())
                 .precioPorUnidad(cabana.getPrecioPorUnidad())
-                .estado(cabana.getEstado())
+                .estado(cabana.getEstado() != null ? cabana.getEstado().name() : null)
                 .capacidadPersonas(cabana.getCapacidadPersonas())
                 .numeroHabitaciones(cabana.getNumeroHabitaciones())
                 .numeroBanos(cabana.getNumeroBanos())
                 .metrosCuadrados(cabana.getMetrosCuadrados())
                 .tipoCabana(cabana.getTipoCabana())
                 .serviciosIncluidos(cabana.getServiciosIncluidos())
-                .totalReservas(cabana.getReservas() != null ? cabana.getReservas().size() : 0)
-                .disponibleHoy("DISPONIBLE".equals(cabana.getEstado()))
+                .totalReservas((int) totalReservas)
+                .disponibleHoy(cabana.getEstado() == EstadoRecurso.DISPONIBLE)
                 .itemsInventario(cabana.getInventario() != null ? cabana.getInventario().size() : 0)
                 .imagenes(cabana.getImagenes())
                 .build();
     }
 
     private boolean esEstadoValido(String estado) {
-        return "DISPONIBLE".equals(estado) ||
-               "MANTENIMIENTO".equals(estado) ||
-               "FUERA_SERVICIO".equals(estado);
+        try {
+            EstadoRecurso.valueOf(estado.toUpperCase());
+            return true;
+        } catch (IllegalArgumentException e) {
+            return false;
+        }
     }
 
 }

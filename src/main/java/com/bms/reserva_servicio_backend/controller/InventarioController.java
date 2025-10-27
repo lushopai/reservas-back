@@ -39,9 +39,10 @@ public class InventarioController {
     /**
      * GET /api/inventario/recurso/{recursoId}
      * Obtener inventario de un recurso
+     * Público - Permite ver qué items están disponibles para un recurso (cabaña o servicio)
      */
     @GetMapping("/recurso/{recursoId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    // Sin @PreAuthorize - Se maneja en SpringSecurityConfig como permitAll()
     public ResponseEntity<List<ItemInventarioResponse>> obtenerInventarioRecurso(
             @PathVariable Long recursoId) {
         
@@ -54,7 +55,7 @@ public class InventarioController {
                 .categoria(item.getCategoria())
                 .cantidadTotal(item.getCantidadTotal())
                 .cantidadDisponible(item.getCantidadDisponible())
-                .estadoItem(item.getEstadoItem())
+                .estadoItem(item.getEstadoItem() != null ? item.getEstadoItem().name() : null)
                 .esReservable(item.getEsReservable())
                 .precioReserva(item.getPrecioReserva())
                 .recursoId(item.getRecurso() != null ? item.getRecurso().getId() : null)
@@ -68,9 +69,10 @@ public class InventarioController {
     /**
      * GET /api/inventario/{id}/disponibilidad
      * Consultar disponibilidad de un item en un período
+     * Público - Permite consultar disponibilidad antes de reservar
      */
     @GetMapping("/{id}/disponibilidad")
-    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
+    // Sin @PreAuthorize - Se maneja en SpringSecurityConfig como permitAll()
     public ResponseEntity<DisponibilidadItemResponse> consultarDisponibilidadItem(
             @PathVariable Long id,
             @RequestParam LocalDateTime fechaInicio,
@@ -112,7 +114,7 @@ public class InventarioController {
             .categoria(item.getCategoria())
             .cantidadTotal(item.getCantidadTotal())
             .cantidadDisponible(item.getCantidadDisponible())
-            .estadoItem(item.getEstadoItem())
+            .estadoItem(item.getEstadoItem() != null ? item.getEstadoItem().name() : null)
             .esReservable(item.getEsReservable())
             .precioReserva(item.getPrecioReserva())
             .recursoId(item.getRecurso() != null ? item.getRecurso().getId() : null)
@@ -127,9 +129,10 @@ public class InventarioController {
     /**
      * GET /api/inventario
      * Obtener todos los items del inventario
+     * Requiere autenticación - Usuarios necesitan ver items disponibles para reservar
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<ItemInventarioResponse>> obtenerTodos() {
         List<ItemsInventario> items = inventarioService.obtenerTodos();
 
@@ -140,7 +143,7 @@ public class InventarioController {
                 .categoria(item.getCategoria())
                 .cantidadTotal(item.getCantidadTotal())
                 .cantidadDisponible(item.getCantidadDisponible())
-                .estadoItem(item.getEstadoItem())
+                .estadoItem(item.getEstadoItem() != null ? item.getEstadoItem().name() : null)
                 .esReservable(item.getEsReservable())
                 .precioReserva(item.getPrecioReserva())
                 .recursoId(item.getRecurso() != null ? item.getRecurso().getId() : null)
@@ -154,9 +157,10 @@ public class InventarioController {
     /**
      * GET /api/inventario/{id}
      * Obtener item por ID
+     * Requiere autenticación - Usuarios necesitan ver detalles de items para reservar
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ItemInventarioResponse> obtenerPorId(@PathVariable Long id) {
         ItemsInventario item = inventarioService.obtenerPorId(id);
 
@@ -166,7 +170,7 @@ public class InventarioController {
             .categoria(item.getCategoria())
             .cantidadTotal(item.getCantidadTotal())
             .cantidadDisponible(item.getCantidadDisponible())
-            .estadoItem(item.getEstadoItem())
+            .estadoItem(item.getEstadoItem() != null ? item.getEstadoItem().name() : null)
             .esReservable(item.getEsReservable())
             .precioReserva(item.getPrecioReserva())
             .recursoId(item.getRecurso() != null ? item.getRecurso().getId() : null)
@@ -194,7 +198,7 @@ public class InventarioController {
             .categoria(itemActualizado.getCategoria())
             .cantidadTotal(itemActualizado.getCantidadTotal())
             .cantidadDisponible(itemActualizado.getCantidadDisponible())
-            .estadoItem(itemActualizado.getEstadoItem())
+            .estadoItem(itemActualizado.getEstadoItem() != null ? itemActualizado.getEstadoItem().name() : null)
             .esReservable(itemActualizado.getEsReservable())
             .precioReserva(itemActualizado.getPrecioReserva())
             .recursoId(itemActualizado.getRecurso() != null ? itemActualizado.getRecurso().getId() : null)

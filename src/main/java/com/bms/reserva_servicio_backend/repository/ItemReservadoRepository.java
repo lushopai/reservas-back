@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import com.bms.reserva_servicio_backend.enums.EstadoReserva;
 import com.bms.reserva_servicio_backend.models.ItemReservado;
 
 public interface ItemReservadoRepository extends JpaRepository<ItemReservado, Long> {
@@ -15,7 +16,8 @@ public interface ItemReservadoRepository extends JpaRepository<ItemReservado, Lo
 
         @Query("SELECT COALESCE(SUM(ir.cantidad), 0) FROM ItemReservado ir " +
                         "WHERE ir.item.id = :itemId " +
-                        "AND ir.reserva.estado IN ('CONFIRMADA', 'EN_CURSO') " +
+                        "AND ir.reserva.estado IN (com.bms.reserva_servicio_backend.enums.EstadoReserva.CONFIRMADA, " +
+                        "com.bms.reserva_servicio_backend.enums.EstadoReserva.EN_CURSO) " +
                         "AND ((ir.reserva.fechaInicio BETWEEN :inicio AND :fin) " +
                         "OR (ir.reserva.fechaFin BETWEEN :inicio AND :fin) " +
                         "OR (ir.reserva.fechaInicio <= :inicio AND ir.reserva.fechaFin >= :fin))")
@@ -28,5 +30,5 @@ public interface ItemReservadoRepository extends JpaRepository<ItemReservado, Lo
                         "AND ir.reserva.estado = :estado")
         List<ItemReservado> findByItemIdAndReservaEstado(
                         @Param("itemId") Long itemId,
-                        @Param("estado") String estado);
+                        @Param("estado") EstadoReserva estado);
 }
