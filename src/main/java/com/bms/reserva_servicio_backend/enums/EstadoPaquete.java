@@ -7,6 +7,7 @@ public enum EstadoPaquete {
     BORRADOR,
     PENDIENTE,
     ACTIVO,
+    EN_CURSO,
     COMPLETADO,
     CANCELADO
 }

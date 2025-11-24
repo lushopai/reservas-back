@@ -121,28 +121,41 @@ public class MovimientoInventarioController {
          * Mapper de Movimiento a Response
          */
         private MovimientoInventarioResponse mapToResponse(MovimientoInventario movimiento) {
-                return MovimientoInventarioResponse.builder()
-                                .id(movimiento.getId())
-                                .itemId(movimiento.getItem() != null ? movimiento.getItem().getId() : null)
-                                .nombreItem(movimiento.getItem() != null ? movimiento.getItem().getNombre() : null)
-                                .categoriaItem(movimiento.getItem() != null ? movimiento.getItem().getCategoria()
-                                                : null)
-                                .tipoMovimiento(movimiento.getTipoMovimiento().name())
-                                .cantidad(movimiento.getCantidad())
-                                .fechaMovimiento(movimiento.getFechaMovimiento())
-                                .stockAnterior(movimiento.getStockAnterior())
-                                .stockPosterior(movimiento.getStockPosterior())
-                                .reservaId(movimiento.getReserva() != null ? movimiento.getReserva().getId() : null)
-                                .nombreRecurso(movimiento.getReserva() != null
-                                                && movimiento.getReserva().getRecurso() != null
-                                                                ? movimiento.getReserva().getRecurso().getNombre()
-                                                                : null)
-                                .usuarioId(movimiento.getUsuario() != null ? movimiento.getUsuario().getId() : null)
-                                .nombreUsuario(movimiento.getUsuario() != null
-                                                ? movimiento.getUsuario().getNombres() + " "
-                                                                + movimiento.getUsuario().getApellidos()
-                                                : null)
-                                .observaciones(movimiento.getObservaciones())
-                                .build();
+                try {
+                        return MovimientoInventarioResponse.builder()
+                                        .id(movimiento.getId())
+                                        .itemId(movimiento.getItem() != null ? movimiento.getItem().getId() : null)
+                                        .nombreItem(movimiento.getItem() != null ? movimiento.getItem().getNombre()
+                                                        : null)
+                                        .categoriaItem(movimiento.getItem() != null
+                                                        ? movimiento.getItem().getCategoria()
+                                                        : null)
+                                        .tipoMovimiento(movimiento.getTipoMovimiento() != null
+                                                        ? movimiento.getTipoMovimiento().name()
+                                                        : "DESCONOCIDO")
+                                        .cantidad(movimiento.getCantidad())
+                                        .fechaMovimiento(movimiento.getFechaMovimiento())
+                                        .stockAnterior(movimiento.getStockAnterior())
+                                        .stockPosterior(movimiento.getStockPosterior())
+                                        .reservaId(movimiento.getReserva() != null ? movimiento.getReserva().getId()
+                                                        : null)
+                                        .nombreRecurso(movimiento.getReserva() != null
+                                                        && movimiento.getReserva().getRecurso() != null
+                                                                        ? movimiento.getReserva().getRecurso()
+                                                                                        .getNombre()
+                                                                        : null)
+                                        .usuarioId(movimiento.getUsuario() != null ? movimiento.getUsuario().getId()
+                                                        : null)
+                                        .nombreUsuario(movimiento.getUsuario() != null
+                                                        ? movimiento.getUsuario().getNombres() + " "
+                                                                        + movimiento.getUsuario().getApellidos()
+                                                        : null)
+                                        .observaciones(movimiento.getObservaciones())
+                                        .build();
+                } catch (Exception e) {
+                        System.err.println("Error mapping movimiento ID: " + movimiento.getId());
+                        e.printStackTrace();
+                        throw e;
+                }
         }
 }

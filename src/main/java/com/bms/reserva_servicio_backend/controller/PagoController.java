@@ -149,6 +149,16 @@ public class PagoController {
 
                 // Actualizar estado del paquete a ACTIVO después del pago
                 paquete.setEstado(EstadoPaquete.ACTIVO);
+
+                // Actualizar todas las reservas del paquete a CONFIRMADA
+                for (Reserva reserva : paquete.getReservas()) {
+                        if (reserva.getEstado() == EstadoReserva.PENDIENTE_PAGO ||
+                                        reserva.getEstado() == EstadoReserva.PENDIENTE) {
+                                reserva.setEstado(EstadoReserva.CONFIRMADA);
+                                reservaRepository.save(reserva);
+                        }
+                }
+
                 paqueteReservaRepository.save(paquete);
 
                 // Construir response

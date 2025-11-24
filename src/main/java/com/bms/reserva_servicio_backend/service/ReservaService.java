@@ -6,19 +6,21 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.bms.reserva_servicio_backend.dto.ItemReservaDTO;
 import com.bms.reserva_servicio_backend.dto.PagoDTO;
+import com.bms.reserva_servicio_backend.enums.EstadoPaquete;
 import com.bms.reserva_servicio_backend.enums.EstadoReserva;
 import com.bms.reserva_servicio_backend.enums.TipoReserva;
 import com.bms.reserva_servicio_backend.models.Cabana;
 import com.bms.reserva_servicio_backend.models.ItemsInventario;
+import com.bms.reserva_servicio_backend.models.PaqueteReserva;
 import com.bms.reserva_servicio_backend.models.Reserva;
 import com.bms.reserva_servicio_backend.models.ServicioEntretencion;
 import com.bms.reserva_servicio_backend.models.User;
 import com.bms.reserva_servicio_backend.repository.CabanaRepository;
+import com.bms.reserva_servicio_backend.repository.PaqueteReservaRepository;
 import com.bms.reserva_servicio_backend.repository.ReservaRepository;
 import com.bms.reserva_servicio_backend.repository.ServicioEntretencionRepository;
 import com.bms.reserva_servicio_backend.repository.UserRepository;
@@ -39,12 +41,13 @@ public class ReservaService {
     private final PrecioService precioService;
     private final ValidacionService validacionService;
     private final PagoService pagoService;
+    private final PaqueteReservaRepository paqueteRepository;
 
-    @Autowired
     public ReservaService(ReservaRepository reservaRepository, CabanaRepository cabanaRepository,
             ServicioEntretencionRepository servicioRepository, UserRepository userRepository,
             DisponibilidadService disponibilidadService, InventarioService inventarioService,
-            PrecioService precioService, ValidacionService validacionService, PagoService pagoService) {
+            PrecioService precioService, ValidacionService validacionService, PagoService pagoService,
+            PaqueteReservaRepository paqueteRepository) {
         this.reservaRepository = reservaRepository;
         this.cabanaRepository = cabanaRepository;
         this.servicioRepository = servicioRepository;
@@ -54,6 +57,7 @@ public class ReservaService {
         this.precioService = precioService;
         this.validacionService = validacionService;
         this.pagoService = pagoService;
+        this.paqueteRepository = paqueteRepository;
     }
 
     /**
@@ -219,7 +223,12 @@ public class ReservaService {
         // Actualizar estado
         reserva.setEstado(EstadoReserva.CANCELADA);
         reserva.setObservaciones(motivo);
-        reservaRepository.save(reserva);
+        reserva = reservaRepository.save(reserva);
+
+        // Actualizar estado del paquete si corresponde
+        if (reserva.getPaquete() != null) {
+            actualizarEstadoPaquete(reserva.getPaquete());
+        }
     }
 
     /**
@@ -244,7 +253,15 @@ public class ReservaService {
         reserva.setEstado(EstadoReserva.EN_CURSO);
         // Opcional: Registrar la fecha/hora de check-in si se añade un campo a la
         // entidad Reserva
-        return reservaRepository.save(reserva);
+
+        reserva = reservaRepository.save(reserva);
+
+        // Actualizar estado del paquete si corresponde
+        if (reserva.getPaquete() != null) {
+            actualizarEstadoPaquete(reserva.getPaquete());
+        }
+
+        return reserva;
     }
 
     /**
@@ -275,7 +292,15 @@ public class ReservaService {
         reserva.setEstado(EstadoReserva.COMPLETADA);
         // Opcional: Registrar la fecha/hora de check-out si se añade un campo a la
         // entidad Reserva
-        return reservaRepository.save(reserva);
+
+        reserva = reservaRepository.save(reserva);
+
+        // Actualizar estado del paquete si corresponde
+        if (reserva.getPaquete() != null) {
+            actualizarEstadoPaquete(reserva.getPaquete());
+        }
+
+        return reserva;
     }
 
     /**
@@ -346,7 +371,14 @@ public class ReservaService {
             disponibilidadService.liberarRecurso(reserva);
         }
 
-        return reservaRepository.save(reserva);
+        reserva = reservaRepository.save(reserva);
+
+        // Actualizar estado del paquete si corresponde
+        if (reserva.getPaquete() != null) {
+            actualizarEstadoPaquete(reserva.getPaquete());
+        }
+
+        return reserva;
     }
 
     /**
@@ -367,6 +399,54 @@ public class ReservaService {
             }
         }
         return total;
+    }
+
+    /**
+     * Actualiza el estado del paquete basándose en el estado de sus reservas
+     */
+    private void actualizarEstadoPaquete(PaqueteReserva paquete) {
+        if (paquete == null)
+            return;
+
+        boolean algunaEnCurso = false;
+        boolean todasCompletadasOCanceladas = true;
+        boolean todasCanceladas = true;
+
+        for (Reserva r : paquete.getReservas()) {
+            // Verificar si hay alguna en curso
+            if (r.getEstado() == EstadoReserva.EN_CURSO) {
+                algunaEnCurso = true;
+            }
+
+            // Verificar si todas están finalizadas (Completada o Cancelada)
+            if (r.getEstado() != EstadoReserva.COMPLETADA && r.getEstado() != EstadoReserva.CANCELADA) {
+                todasCompletadasOCanceladas = false;
+            }
+
+            // Verificar si todas están canceladas
+            if (r.getEstado() != EstadoReserva.CANCELADA) {
+                todasCanceladas = false;
+            }
+        }
+
+        // Lógica de transición de estados del paquete
+        if (todasCompletadasOCanceladas) {
+            if (todasCanceladas) {
+                paquete.setEstado(EstadoPaquete.CANCELADO);
+            } else {
+                // Si todas terminaron y al menos una se completó (o fue mix
+                // cancelada/completada),
+                // consideramos el paquete completado
+                paquete.setEstado(EstadoPaquete.COMPLETADO);
+            }
+        } else if (algunaEnCurso) {
+            // Si hay alguna en curso y no todas han terminado, el paquete está en curso
+            paquete.setEstado(EstadoPaquete.EN_CURSO);
+        }
+        // Si no se cumple ninguna, mantenemos el estado actual (probablemente ACTIVO o
+        // PENDIENTE)
+
+        paqueteRepository.save(paquete);
     }
 
 }
