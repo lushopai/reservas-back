@@ -102,7 +102,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                 .build();
 
         String token = Jwts.builder()
-                .subject(username)  // ✅ CORREGIDO: usar username real, no "Joe"
+                .subject(username)  // CORREGIDO: usar username real, no "Joe"
                 .claims(claims)
                 .expiration(new Date(System.currentTimeMillis() + 3600000))
                 .issuedAt(new Date())

@@ -99,7 +99,7 @@ public class ReservaSchedulerService {
      */
     @Scheduled(fixedDelay = 1800000, initialDelay = 30000) // Cada 30 minutos, delay inicial de 30 segundos
     public void actualizarReservasEnCurso() {
-        logger.info("🔄 Actualizando reservas a EN_CURSO...");
+        logger.info("Actualizando reservas a EN_CURSO...");
 
         try {
             LocalDateTime ahora = LocalDateTime.now();
@@ -114,28 +114,28 @@ public class ReservaSchedulerService {
                 .toList();
 
             if (reservasEnCurso.isEmpty()) {
-                logger.info("✅ No hay reservas para iniciar");
+                logger.info("No hay reservas para iniciar");
                 return;
             }
 
-            logger.info("📋 Encontradas {} reservas para marcar como EN_CURSO", reservasEnCurso.size());
+            logger.info("Encontradas {} reservas para marcar como EN_CURSO", reservasEnCurso.size());
 
             int actualizadas = 0;
             for (Reserva reserva : reservasEnCurso) {
                 try {
                     reserva.setEstado(EstadoReserva.EN_CURSO);
                     reservaRepository.save(reserva);
-                    logger.info("✅ Reserva #{} actualizada a EN_CURSO", reserva.getId());
+                    logger.info("Reserva #{} actualizada a EN_CURSO", reserva.getId());
                     actualizadas++;
                 } catch (Exception e) {
-                    logger.error("❌ Error al actualizar reserva #{}: {}", reserva.getId(), e.getMessage());
+                    logger.error("Error al actualizar reserva #{}: {}", reserva.getId(), e.getMessage());
                 }
             }
 
-            logger.info("✅ Actualizadas {} reservas a EN_CURSO", actualizadas);
+            logger.info("Actualizadas {} reservas a EN_CURSO", actualizadas);
 
         } catch (Exception e) {
-            logger.error("❌ Error en actualizarReservasEnCurso: {}", e.getMessage(), e);
+            logger.error("Error en actualizarReservasEnCurso: {}", e.getMessage(), e);
         }
     }
 
@@ -144,9 +144,9 @@ public class ReservaSchedulerService {
      * No se ejecuta automáticamente, solo llamando directamente al método
      */
     public void recalcularTodoElStock() {
-        logger.info("🔄 Recalculando stock de todos los items...");
+        logger.info("Recalculando stock de todos los items...");
         // Este método ya existe en AuditoriaController
         // Se podría mover aquí si se necesita ejecutar programadamente
-        logger.info("✅ Para recalcular stock, usar: POST /api/auditoria/recalcular-stock");
+        logger.info("Para recalcular stock, usar: POST /api/auditoria/recalcular-stock");
     }
 }

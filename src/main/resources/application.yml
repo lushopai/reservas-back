@@ -6,7 +6,7 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
-      ddl-auto: update # Recrea la BD cada vez + ejecuta import.sql automáticamente
+      ddl-auto: update # Valida que el schema de la BD coincida con las entidades
     show-sql: true
     properties:
       hibernate:

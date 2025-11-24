@@ -31,10 +31,10 @@ public class AuditoriaSchedulerService {
      */
     @Scheduled(cron = "0 0 2 * * *")
     public void auditoriaDiaria() {
-        logger.info("🔍 ==========================================");
-        logger.info("🔍 INICIANDO AUDITORÍA DIARIA DEL SISTEMA");
-        logger.info("🔍 Fecha: {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
-        logger.info("🔍 ==========================================");
+        logger.info("==========================================");
+        logger.info("INICIANDO AUDITORÍA DIARIA DEL SISTEMA");
+        logger.info("Fecha: {}", LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")));
+        logger.info("==========================================");
 
         try {
             // 1. Auditar items en recursos incorrectos
@@ -49,13 +49,13 @@ public class AuditoriaSchedulerService {
             // 4. Auditar reservas con fechas incorrectas
             auditarFechasIncorrectas();
 
-            logger.info("✅ AUDITORÍA DIARIA COMPLETADA EXITOSAMENTE");
+            logger.info("AUDITORÍA DIARIA COMPLETADA EXITOSAMENTE");
 
         } catch (Exception e) {
-            logger.error("❌ ERROR EN AUDITORÍA DIARIA: {}", e.getMessage(), e);
+            logger.error("ERROR EN AUDITORÍA DIARIA: {}", e.getMessage(), e);
         }
 
-        logger.info("🔍 ==========================================\n");
+        logger.info("==========================================\n");
     }
 
     /**
@@ -63,7 +63,7 @@ public class AuditoriaSchedulerService {
      */
     @Scheduled(fixedDelay = 21600000, initialDelay = 300000) // Cada 6 horas, delay inicial 5 minutos
     public void auditoriaRapida() {
-        logger.info("🔍 Ejecutando auditoría rápida...");
+        logger.info("Ejecutando auditoría rápida...");
 
         try {
             // Solo verificar problemas críticos
@@ -71,7 +71,7 @@ public class AuditoriaSchedulerService {
             int stockInconsistente = contarStockInconsistente();
 
             if (itemsIncorrectos > 0 || stockInconsistente > 0) {
-                logger.warn("⚠️ PROBLEMAS DETECTADOS:");
+                logger.warn("PROBLEMAS DETECTADOS:");
                 if (itemsIncorrectos > 0) {
                     logger.warn("  - {} items en recursos incorrectos", itemsIncorrectos);
                 }
@@ -81,16 +81,16 @@ public class AuditoriaSchedulerService {
                 logger.warn("  Ejecutar: POST /api/auditoria/corregir-items-incorrectos");
                 logger.warn("  Ejecutar: POST /api/auditoria/recalcular-stock");
             } else {
-                logger.info("✅ Sistema saludable - No se detectaron problemas");
+                logger.info("Sistema saludable - No se detectaron problemas");
             }
 
         } catch (Exception e) {
-            logger.error("❌ Error en auditoría rápida: {}", e.getMessage());
+            logger.error("Error en auditoría rápida: {}", e.getMessage());
         }
     }
 
     private void auditarItemsIncorrectos() {
-        logger.info("📋 Auditando items en recursos incorrectos...");
+        logger.info("Auditando items en recursos incorrectos...");
 
         String sql = """
             SELECT COUNT(*) FROM items_reservados ir
@@ -102,7 +102,7 @@ public class AuditoriaSchedulerService {
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class);
 
         if (count != null && count > 0) {
-            logger.error("❌ CRÍTICO: {} items asociados a recursos incorrectos", count);
+            logger.error("CRÍTICO: {} items asociados a recursos incorrectos", count);
 
             // Obtener detalles
             String sqlDetalle = """
@@ -129,12 +129,12 @@ public class AuditoriaSchedulerService {
                            detalle.get("recurso_reserva"));
             }
         } else {
-            logger.info("✅ No hay items en recursos incorrectos");
+            logger.info("No hay items en recursos incorrectos");
         }
     }
 
     private void auditarStockInconsistente() {
-        logger.info("📋 Auditando consistencia de stock...");
+        logger.info("Auditando consistencia de stock...");
 
         String sql = """
             SELECT COUNT(*) FROM items_inventario ii
@@ -152,7 +152,7 @@ public class AuditoriaSchedulerService {
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class);
 
         if (count != null && count > 0) {
-            logger.error("❌ CRÍTICO: {} items con stock inconsistente", count);
+            logger.error("CRÍTICO: {} items con stock inconsistente", count);
 
             // Obtener detalles
             String sqlDetalle = """
@@ -188,12 +188,12 @@ public class AuditoriaSchedulerService {
                            detalle.get("stock_esperado"));
             }
         } else {
-            logger.info("✅ Stock de todos los items es consistente");
+            logger.info("Stock de todos los items es consistente");
         }
     }
 
     private void auditarIntegridadReferencial() {
-        logger.info("📋 Auditando integridad referencial...");
+        logger.info("Auditando integridad referencial...");
 
         boolean hayProblemas = false;
 
@@ -203,7 +203,7 @@ public class AuditoriaSchedulerService {
             Integer.class
         );
         if (reservasSinUsuario != null && reservasSinUsuario > 0) {
-            logger.error("❌ {} reservas sin usuario", reservasSinUsuario);
+            logger.error("{} reservas sin usuario", reservasSinUsuario);
             hayProblemas = true;
         }
 
@@ -213,17 +213,17 @@ public class AuditoriaSchedulerService {
             Integer.class
         );
         if (itemsHuerfanos != null && itemsHuerfanos > 0) {
-            logger.error("❌ {} items reservados huérfanos", itemsHuerfanos);
+            logger.error("{} items reservados huérfanos", itemsHuerfanos);
             hayProblemas = true;
         }
 
         if (!hayProblemas) {
-            logger.info("✅ Integridad referencial correcta");
+            logger.info("Integridad referencial correcta");
         }
     }
 
     private void auditarFechasIncorrectas() {
-        logger.info("📋 Auditando fechas de reservas...");
+        logger.info("Auditando fechas de reservas...");
 
         String sql = """
             SELECT COUNT(*) FROM reservas
@@ -237,9 +237,9 @@ public class AuditoriaSchedulerService {
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class);
 
         if (count != null && count > 0) {
-            logger.error("❌ {} reservas con fechas incorrectas", count);
+            logger.error("{} reservas con fechas incorrectas", count);
         } else {
-            logger.info("✅ Todas las fechas son correctas");
+            logger.info("Todas las fechas son correctas");
         }
     }
 

@@ -30,11 +30,11 @@ import lombok.EqualsAndHashCode;
 
 @Entity
 @Table(name = "reservas", indexes = {
-    @Index(name = "idx_reserva_fechas", columnList = "fechaInicio, fechaFin"),
-    @Index(name = "idx_reserva_estado", columnList = "estado"),
-    @Index(name = "idx_reserva_recurso", columnList = "recurso_id"),
-    @Index(name = "idx_reserva_user", columnList = "user_id"),
-    @Index(name = "idx_reserva_paquete", columnList = "paquete_id")
+        @Index(name = "idx_reserva_fechas", columnList = "fechaInicio, fechaFin"),
+        @Index(name = "idx_reserva_estado", columnList = "estado"),
+        @Index(name = "idx_reserva_recurso", columnList = "recurso_id"),
+        @Index(name = "idx_reserva_user", columnList = "user_id"),
+        @Index(name = "idx_reserva_paquete", columnList = "paquete_id")
 })
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -55,7 +55,7 @@ public class Reserva extends Auditable {
     private User user;
 
     @NotNull(message = "El recurso es obligatorio")
-    @JsonIgnoreProperties({"inventario", "imagenes", "reservas"})
+    @JsonIgnoreProperties({ "inventario", "imagenes", "reservas" })
     @ManyToOne
     @JoinColumn(name = "recurso_id", nullable = false)
     private Recurso recurso;
@@ -79,7 +79,7 @@ public class Reserva extends Auditable {
 
     @NotNull(message = "El estado es obligatorio")
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 50)
     private EstadoReserva estado;
 
     @NotNull(message = "El precio base es obligatorio")
@@ -102,6 +102,7 @@ public class Reserva extends Auditable {
 
     @ManyToOne
     @JoinColumn(name = "paquete_id")
+    @JsonIgnoreProperties("reservas")
     private PaqueteReserva paquete; // Si es parte de un paquete
 
     @Column(columnDefinition = "TEXT")

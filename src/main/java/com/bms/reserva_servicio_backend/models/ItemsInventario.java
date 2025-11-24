@@ -19,6 +19,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version; // Import @Version
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -36,6 +37,10 @@ public class ItemsInventario {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Version // Optimistic locking version field
+    @Column(name = "version")
+    private Long version;
 
     @NotNull(message = "El recurso es obligatorio")
     @JsonIgnoreProperties({"inventario", "imagenes"})
@@ -82,6 +87,14 @@ public class ItemsInventario {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 
     public Recurso getRecurso() {
@@ -163,8 +176,4 @@ public class ItemsInventario {
                 + estadoItem + ", esReservable=" + esReservable + ", precioReserva=" + precioReserva + ", reservas="
                 + reservas + "]";
     }
-
-    
-    
-
 }

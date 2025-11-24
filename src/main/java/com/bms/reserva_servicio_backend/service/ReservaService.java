@@ -96,14 +96,14 @@ public class ReservaService {
 
         Reserva reserva = new Reserva();
         reserva.setRecurso(cabana);
-        reserva.setUser(user);  // CAMBIADO: setCliente -> setUser
-        reserva.setFechaReserva(LocalDateTime.now());  // CORREGIDO: era setFechaFin
+        reserva.setUser(user); // CAMBIADO: setCliente -> setUser
+        reserva.setFechaReserva(LocalDateTime.now()); // CORREGIDO: era setFechaFin
         reserva.setFechaInicio(fechaInicio.atTime(15, 0));
         reserva.setFechaFin(fechaFin.atTime(12, 0));
         reserva.setPrecioBase(precioBase);
         reserva.setPrecioItems(precioItems);
         reserva.setPrecioTotal(precioBase.add(precioItems));
-        reserva.setEstado(EstadoReserva.PENDIENTE);
+        reserva.setEstado(EstadoReserva.PENDIENTE_PAGO);
         reserva.setTipoReserva(TipoReserva.CABANA_DIA);
 
         reserva = reservaRepository.save(reserva);
@@ -156,14 +156,14 @@ public class ReservaService {
         // Crear reserva
         Reserva reserva = new Reserva();
         reserva.setRecurso(servicio);
-        reserva.setUser(user);  // CAMBIADO: setCliente -> setUser
+        reserva.setUser(user); // CAMBIADO: setCliente -> setUser
         reserva.setFechaReserva(LocalDateTime.now());
         reserva.setFechaInicio(fecha.atTime(horaInicio));
         reserva.setFechaFin(fecha.atTime(horaFin));
         reserva.setPrecioBase(precioBase);
         reserva.setPrecioItems(precioEquipamiento);
         reserva.setPrecioTotal(precioBase.add(precioEquipamiento));
-        reserva.setEstado(EstadoReserva.PENDIENTE);
+        reserva.setEstado(EstadoReserva.PENDIENTE_PAGO);
         reserva.setTipoReserva(TipoReserva.SERVICIO_BLOQUE);
 
         reserva = reservaRepository.save(reserva);
@@ -186,8 +186,8 @@ public class ReservaService {
         Reserva reserva = reservaRepository.findById(reservaId)
                 .orElseThrow(() -> new EntityNotFoundException("Reserva no encontrada"));
 
-        if (reserva.getEstado() != EstadoReserva.PENDIENTE) {
-            throw new IllegalStateException("La reserva no está en estado pendiente");
+        if (reserva.getEstado() != EstadoReserva.PENDIENTE_PAGO) {
+            throw new IllegalStateException("La reserva no está en estado pendiente de pago");
         }
 
         // Validar monto
@@ -220,6 +220,62 @@ public class ReservaService {
         reserva.setEstado(EstadoReserva.CANCELADA);
         reserva.setObservaciones(motivo);
         reservaRepository.save(reserva);
+    }
+
+    /**
+     * Realiza el check-in de una reserva, cambiando su estado de CONFIRMADA a
+     * EN_CURSO.
+     * 
+     * @param reservaId ID de la reserva a la que se le hará check-in.
+     * @return La reserva actualizada.
+     * @throws EntityNotFoundException si la reserva no es encontrada.
+     * @throws IllegalStateException   si el estado actual de la reserva no permite
+     *                                 el check-in.
+     */
+    public Reserva checkInReserva(Long reservaId) {
+        Reserva reserva = reservaRepository.findById(reservaId)
+                .orElseThrow(() -> new EntityNotFoundException("Reserva no encontrada"));
+
+        if (!reserva.getEstado().puedeTransicionarA(EstadoReserva.EN_CURSO)) {
+            throw new IllegalStateException(
+                    String.format("No se puede realizar check-in a una reserva en estado %s", reserva.getEstado()));
+        }
+
+        reserva.setEstado(EstadoReserva.EN_CURSO);
+        // Opcional: Registrar la fecha/hora de check-in si se añade un campo a la
+        // entidad Reserva
+        return reservaRepository.save(reserva);
+    }
+
+    /**
+     * Realiza el check-out de una reserva, cambiando su estado de EN_CURSO a
+     * COMPLETADA.
+     * Además, libera el inventario asociado a la reserva.
+     * 
+     * @param reservaId ID de la reserva a la que se le hará check-out.
+     * @return La reserva actualizada.
+     * @throws EntityNotFoundException si la reserva no es encontrada.
+     * @throws IllegalStateException   si el estado actual de la reserva no permite
+     *                                 el check-out.
+     */
+    public Reserva checkOutReserva(Long reservaId) {
+        Reserva reserva = reservaRepository.findById(reservaId)
+                .orElseThrow(() -> new EntityNotFoundException("Reserva no encontrada"));
+
+        if (!reserva.getEstado().puedeTransicionarA(EstadoReserva.COMPLETADA)) {
+            throw new IllegalStateException(
+                    String.format("No se puede realizar check-out a una reserva en estado %s", reserva.getEstado()));
+        }
+
+        // Liberar inventario asociado a la reserva
+        inventarioService.liberarItems(reserva);
+        // Liberar disponibilidad del recurso principal (cabaña/servicio)
+        disponibilidadService.liberarRecurso(reserva);
+
+        reserva.setEstado(EstadoReserva.COMPLETADA);
+        // Opcional: Registrar la fecha/hora de check-out si se añade un campo a la
+        // entidad Reserva
+        return reservaRepository.save(reserva);
     }
 
     /**
@@ -263,8 +319,7 @@ public class ReservaService {
         // Validar transición de estado usando el método del Enum
         if (!estadoActual.puedeTransicionarA(nuevoEstado)) {
             throw new IllegalStateException(
-                String.format("No se puede cambiar de %s a %s", estadoActual, nuevoEstado)
-            );
+                    String.format("No se puede cambiar de %s a %s", estadoActual, nuevoEstado));
         }
 
         // Aplicar cambio de estado
@@ -286,9 +341,9 @@ public class ReservaService {
                 reserva.setObservaciones(obsActuales + "\nMotivo cancelación: " + motivo);
             }
         } else if (nuevoEstado == EstadoReserva.COMPLETADA) {
-            // ✅ Al completar, también liberar items para que vuelvan a estar disponibles
+            // Liberar inventario y recurso al completar la reserva
             inventarioService.liberarItems(reserva);
-            // No liberamos el recurso porque ya se usó, solo los items
+            disponibilidadService.liberarRecurso(reserva);
         }
 
         return reservaRepository.save(reserva);

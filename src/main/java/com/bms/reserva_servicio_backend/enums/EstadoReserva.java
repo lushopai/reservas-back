@@ -5,9 +5,10 @@ package com.bms.reserva_servicio_backend.enums;
  */
 public enum EstadoReserva {
     BORRADOR,
-    PENDIENTE,
-    CONFIRMADA,
-    EN_CURSO,
+    PENDIENTE_PAGO, // Nuevo estado: Reserva creada, esperando pago
+    PENDIENTE,      // Estado intermedio si la confirmación del pago no es instantánea
+    CONFIRMADA,     // Pago recibido, reserva confirmada, esperando check-in
+    EN_CURSO,       // Cliente ha hecho check-in, recurso en uso
     COMPLETADA,
     CANCELADA;
 
@@ -27,7 +28,10 @@ public enum EstadoReserva {
         // Transiciones válidas según flujo de negocio
         switch (this) {
             case BORRADOR:
-                return nuevoEstado == PENDIENTE || nuevoEstado == CANCELADA;
+                return nuevoEstado == PENDIENTE_PAGO || nuevoEstado == CANCELADA;
+            case PENDIENTE_PAGO:
+                // Puede pasar a PENDIENTE (si hay un proceso de pago asíncrono) o CONFIRMADA (pago exitoso) o CANCELADA
+                return nuevoEstado == PENDIENTE || nuevoEstado == CONFIRMADA || nuevoEstado == CANCELADA;
             case PENDIENTE:
                 return nuevoEstado == CONFIRMADA || nuevoEstado == CANCELADA;
             case CONFIRMADA:

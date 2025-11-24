@@ -29,32 +29,33 @@ public class PaqueteReservaRequest {
 
     @NotNull(message = "La fecha de fin es obligatoria")
     private LocalDate fechaFin; // Cambiar a LocalDate para recibir solo fecha
-    
+
     // Cabaña (opcional, puede ser un paquete solo de servicios)
     private Long cabanaId;
-    private List<ItemReservaDTO> itemsCabana;
-    
+    private List<ItemReservaDTO> itemsAdicionales;
+
     // Servicios incluidos (opcional, puede ser solo cabaña)
     private List<ServicioReservaDTO> servicios;
-    
+
     private String notasEspeciales;
-    
+
     /**
      * Convertir Request a DTO interno
      */
     public PaqueteReservaDTO toDTO() {
-        PaqueteReservaDTO  dto = new PaqueteReservaDTO();
+        PaqueteReservaDTO dto = new PaqueteReservaDTO();
         dto.setNombre(this.nombre);
-        // Convertir LocalDate a LocalDateTime (check-in a las 15:00, check-out a las 12:00)
+        // Convertir LocalDate a LocalDateTime (check-in a las 15:00, check-out a las
+        // 12:00)
         dto.setFechaInicio(this.fechaInicio.atTime(15, 0));
         dto.setFechaFin(this.fechaFin.atTime(12, 0));
         dto.setCabanaId(this.cabanaId);
-        dto.setItemsCabana(this.itemsCabana);
+        dto.setItemsCabana(this.itemsAdicionales);
         dto.setServicios(this.servicios);
         dto.setNotasEspeciales(this.notasEspeciales);
         return dto;
     }
-    
+
     /**
      * Validación personalizada
      */
@@ -65,7 +66,7 @@ public class PaqueteReservaRequest {
         }
         return fechaFin.isAfter(fechaInicio);
     }
-    
+
     @AssertTrue(message = "Debe incluir al menos una cabaña o un servicio")
     public boolean tieneAlMenosUnRecurso() {
         return cabanaId != null || (servicios != null && !servicios.isEmpty());

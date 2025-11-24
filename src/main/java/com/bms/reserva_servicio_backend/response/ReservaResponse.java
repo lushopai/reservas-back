@@ -45,11 +45,11 @@ public class ReservaResponse {
     private Long paqueteId;
     private String nombrePaquete;
     private String estadoPaquete;  // Estado del paquete (BORRADOR, PENDIENTE, CONFIRMADO)
-    // ✅ Precios del paquete completo
+    // Precios del paquete completo
     private BigDecimal precioTotalPaquete;  // Suma de todas las reservas
     private BigDecimal descuentoPaquete;     // Descuento aplicado
     private BigDecimal precioFinalPaquete;   // Total con descuento
-    // ✅ Lista de todas las reservas del paquete (para mostrar desglose completo)
+    // Lista de todas las reservas del paquete (para mostrar desglose completo)
     private List<ReservaResumenDTO> reservasPaquete;
 
     private String observaciones;

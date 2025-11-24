@@ -15,10 +15,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ServicioReservaDTO {
-    
+
     private Long servicioId;
     private LocalDate fecha;
     private LocalTime horaInicio;
     private Integer duracionBloques;
-    private List<ItemReservaDTO> equipamiento;
+    private List<ItemReservaDTO> itemsAdicionales; // Items adicionales del servicio
 }

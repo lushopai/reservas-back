@@ -54,7 +54,8 @@ public class PaqueteReservaService {
         paquete.setEstado(EstadoPaquete.BORRADOR); // Estado inicial para permitir modificaciones antes del pago
         paquete.setNotasEspeciales(paqueteDTO.getNotasEspeciales());
 
-        // IMPORTANTE: Inicializar precios en cero para cumplir con validaciones @NotNull
+        // IMPORTANTE: Inicializar precios en cero para cumplir con validaciones
+        // @NotNull
         // Se calcularán correctamente después de crear las reservas
         paquete.setPrecioTotal(BigDecimal.ZERO);
         paquete.setDescuento(BigDecimal.ZERO);
@@ -80,13 +81,14 @@ public class PaqueteReservaService {
         // Agregar reservas de servicios
         if (paqueteDTO.getServicios() != null) {
             for (ServicioReservaDTO servicioDTO : paqueteDTO.getServicios()) {
+                // ✅ Pasar items adicionales del servicio si existen
                 Reserva reservaServicio = reservaService.reservarServicio(
                         servicioDTO.getServicioId(),
                         userId,
                         servicioDTO.getFecha(),
                         servicioDTO.getHoraInicio(),
                         servicioDTO.getDuracionBloques(),
-                        servicioDTO.getEquipamiento());
+                        servicioDTO.getItemsAdicionales()); // ✅ Pasar items del servicio
                 reservaServicio.setPaquete(paquete);
                 precioTotal = precioTotal.add(reservaServicio.getPrecioTotal());
             }
@@ -97,7 +99,8 @@ public class PaqueteReservaService {
         paquete.setDescuento(BigDecimal.ZERO);
         paquete.setPrecioFinal(precioTotal);
 
-        // Cambiar estado a PENDIENTE ya que todas las reservas fueron creadas exitosamente
+        // Cambiar estado a PENDIENTE ya que todas las reservas fueron creadas
+        // exitosamente
         paquete.setEstado(EstadoPaquete.PENDIENTE);
 
         return paqueteRepository.save(paquete);

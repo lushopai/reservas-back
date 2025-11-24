@@ -3,6 +3,8 @@ package com.bms.reserva_servicio_backend.models;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -21,6 +23,7 @@ public class BloqueHorario {
 
     @ManyToOne
     @JoinColumn(name = "servicio_id")
+    @JsonIgnoreProperties("bloquesHorarios")
     private ServicioEntretencion servicio;
 
     private LocalDate fecha;
@@ -87,7 +90,8 @@ public class BloqueHorario {
 
     @Override
     public String toString() {
-        return "BloqueHorario [id=" + id + ", servicio=" + servicio + ", fecha=" + fecha + ", horaInicio=" + horaInicio
+        return "BloqueHorario [id=" + id + ", servicioId=" + (servicio != null ? servicio.getId() : "null") + ", fecha="
+                + fecha + ", horaInicio=" + horaInicio
                 + ", horaFin=" + horaFin + ", disponible=" + disponible + ", motivoNoDisponible=" + motivoNoDisponible
                 + "]";
     }

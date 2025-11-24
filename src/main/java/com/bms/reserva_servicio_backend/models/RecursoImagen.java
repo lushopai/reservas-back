@@ -14,6 +14,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.ToString;
 import lombok.NoArgsConstructor;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -24,6 +25,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = "recurso")
 public class RecursoImagen {
 
     @Id

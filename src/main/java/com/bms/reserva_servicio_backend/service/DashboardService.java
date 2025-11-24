@@ -231,13 +231,13 @@ public class DashboardService {
                 ? reserva.getFechaReserva()
                 : reserva.getFechaInicio();
 
-        // ✅ Determinar tipo de reserva
+        // Determinar tipo de reserva
         String tipoReserva = "SERVICIO"; // Por defecto
         if (reserva.getRecurso() != null) {
             tipoReserva = reserva.getRecurso() instanceof Cabana ? "CABANA_DIA" : "SERVICIO";
         }
 
-        // ✅ Obtener información del paquete si existe
+        // Obtener información del paquete si existe
         Long paqueteId = null;
         String nombrePaquete = null;
         String estadoPaquete = null;
@@ -262,12 +262,12 @@ public class DashboardService {
                 .fechaReserva(fechaReserva.toString())
                 .estado(reserva.getEstado() != null ? reserva.getEstado().name() : null)
                 .precioTotal(reserva.getPrecioTotal())
-                // ✅ Campos de paquete
+                // Campos de paquete
                 .paqueteId(paqueteId)
                 .nombrePaquete(nombrePaquete)
                 .estadoPaquete(estadoPaquete)
                 .tipoReserva(tipoReserva)
-                // ✅ Precios del paquete
+                // Precios del paquete
                 .precioTotalPaquete(precioTotalPaquete)
                 .descuentoPaquete(descuentoPaquete)
                 .precioFinalPaquete(precioFinalPaquete)

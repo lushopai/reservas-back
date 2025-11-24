@@ -45,7 +45,7 @@ public class ReservaMapper {
         // Obtener nombre del recurso
         String nombreRecurso = reserva.getRecurso() != null ? reserva.getRecurso().getNombre() : null;
 
-        // ✅ Obtener precios del paquete si existe
+        // Obtener precios del paquete si existe
         BigDecimal precioTotalPaquete = null;
         BigDecimal descuentoPaquete = null;
         BigDecimal precioFinalPaquete = null;
@@ -57,7 +57,7 @@ public class ReservaMapper {
             descuentoPaquete = paquete.getDescuento();
             precioFinalPaquete = paquete.getPrecioFinal();
 
-            // ✅ Mapear todas las reservas del paquete para el desglose
+            // Mapear todas las reservas del paquete para el desglose
             // IMPORTANTE: Solo incluir si includePackageDetails=true para evitar ciclos infinitos
             if (includePackageDetails && paquete.getReservas() != null) {
                 reservasPaquete = paquete.getReservas().stream()
@@ -93,11 +93,11 @@ public class ReservaMapper {
             .nombrePaquete(reserva.getPaquete() != null ? reserva.getPaquete().getNombrePaquete() : null)
             .estadoPaquete(reserva.getPaquete() != null && reserva.getPaquete().getEstado() != null
                 ? reserva.getPaquete().getEstado().name() : null)
-            // ✅ Precios del paquete
+            // Precios del paquete
             .precioTotalPaquete(precioTotalPaquete)
             .descuentoPaquete(descuentoPaquete)
             .precioFinalPaquete(precioFinalPaquete)
-            // ✅ Lista de reservas del paquete
+            // Lista de reservas del paquete
             .reservasPaquete(reservasPaquete)
             .observaciones(reserva.getObservaciones())
             .build();
@@ -128,7 +128,7 @@ public class ReservaMapper {
             .descuento(paquete.getDescuento())
             .precioFinal(paquete.getPrecioFinal())
             .porcentajeDescuento(porcentajeDesc)
-            // ✅ NO incluir detalles del paquete en cada reserva para evitar ciclos infinitos
+            // NO incluir detalles del paquete en cada reserva para evitar ciclos infinitos
             .reservas(paquete.getReservas().stream()
                 .map(r -> toResponse(r, false))
                 .collect(Collectors.toList()))
