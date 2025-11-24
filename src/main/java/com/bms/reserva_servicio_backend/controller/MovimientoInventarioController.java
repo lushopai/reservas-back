@@ -33,7 +33,7 @@ public class MovimientoInventarioController {
          * Obtener todos los movimientos (últimos 50)
          */
         @GetMapping
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
         public ResponseEntity<List<MovimientoInventarioResponse>> obtenerMovimientos() {
                 List<MovimientoInventario> movimientos = movimientoService.obtenerUltimosMovimientos();
                 List<MovimientoInventarioResponse> response = movimientos.stream()
@@ -48,7 +48,7 @@ public class MovimientoInventarioController {
          * Obtener movimientos por item
          */
         @GetMapping("/item/{itemId}")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
         public ResponseEntity<List<MovimientoInventarioResponse>> obtenerPorItem(@PathVariable Long itemId) {
                 List<MovimientoInventario> movimientos = movimientoService.obtenerPorItem(itemId);
                 List<MovimientoInventarioResponse> response = movimientos.stream()
@@ -63,7 +63,7 @@ public class MovimientoInventarioController {
          * Obtener movimientos por tipo
          */
         @GetMapping("/tipo/{tipo}")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
         public ResponseEntity<List<MovimientoInventarioResponse>> obtenerPorTipo(@PathVariable String tipo) {
                 TipoMovimiento tipoMovimiento = TipoMovimiento.valueOf(tipo.toUpperCase());
                 List<MovimientoInventario> movimientos = movimientoService.obtenerPorTipo(tipoMovimiento);
@@ -94,7 +94,7 @@ public class MovimientoInventarioController {
          * Obtener movimientos en un rango de fechas
          */
         @GetMapping("/rango")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
         public ResponseEntity<List<MovimientoInventarioResponse>> obtenerPorRango(
                         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inicio,
                         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fin) {
@@ -112,7 +112,7 @@ public class MovimientoInventarioController {
          * Obtener estadísticas de movimientos
          */
         @GetMapping("/estadisticas")
-        @PreAuthorize("hasRole('ADMIN')")
+        @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
         public ResponseEntity<MovimientoInventarioService.MovimientoEstadisticas> obtenerEstadisticas() {
                 return ResponseEntity.ok(movimientoService.obtenerEstadisticas());
         }

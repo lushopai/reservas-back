@@ -169,6 +169,12 @@ public class SpringSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/estadisticas/**").hasRole("ADMIN")
                         
                         // ============================================
+                        // MOVIMIENTOS DE INVENTARIO - Usuario autenticado
+                        // ============================================
+                        
+                        .requestMatchers(HttpMethod.GET, "/api/movimientos-inventario/**").authenticated()
+                        
+                        // ============================================
                         // AUDITORÍA - Solo ADMIN (temporal para debugging)
                         // ============================================
 
