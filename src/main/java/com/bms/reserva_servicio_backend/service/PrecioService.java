@@ -81,12 +81,12 @@ public class PrecioService {
     private BigDecimal calcularMultiplicadorTemporada(LocalDate inicio, LocalDate fin) {
 
         // Simplificado: tomamos el mes de inicio para determinar temporada
-        int mes = inicio.getMonthValue();
+        // int mes = inicio.getMonthValue();
 
-        // Temporada ALTA
-        if (mes == 12 || mes == 1 || mes == 2 || mes == 7) {
-            return new BigDecimal("1.30"); // +30%
-        }
+        // Temporada ALTA (DESHABILITADA POR AHORA)
+        // if (mes == 12 || mes == 1 || mes == 2 || mes == 7) {
+        // return new BigDecimal("1.30"); // +30%
+        // }
 
         // Temporada MEDIA (resto del año)
         return new BigDecimal("1.00"); // Precio normal
