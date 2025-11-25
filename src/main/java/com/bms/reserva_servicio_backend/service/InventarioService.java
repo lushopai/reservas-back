@@ -126,8 +126,8 @@ public class InventarioService {
 
             itemReservadoRepository.save(itemReservado);
         }
-        // Use StockService to reserve stock
-        stockService.reservarStock(itemsToReserve);
+    // Use StockService to reserve stock (pasar la reserva para registrar movimiento y usuario)
+    stockService.reservarStock(itemsToReserve, reserva);
     }
 
     /**
@@ -244,6 +244,9 @@ public class InventarioService {
             item.setRecurso(recurso);
         }
 
+        // Guardar el valor anterior de cantidad total para comparar
+        Integer cantidadTotalAnterior = item.getCantidadTotal();
+
         // Actualizar campos
         item.setNombre(request.getNombre());
         item.setCategoria(request.getCategoria());
@@ -263,10 +266,13 @@ public class InventarioService {
         item.setEsReservable(request.getEsReservable());
         item.setPrecioReserva(request.getPrecioReserva());
 
-        // Mantener cantidadDisponible si no cambió el total
-        if (!item.getCantidadTotal().equals(request.getCantidadTotal())) {
-            // Si cambió el total, ajustar el disponible proporcionalmente
-            item.setCantidadDisponible(request.getCantidadTotal());
+        // Si cambió la cantidad total, actualizar la disponibilidad
+        if (!cantidadTotalAnterior.equals(request.getCantidadTotal())) {
+            // Calcular la diferencia y ajustar disponibilidad
+            int diferencia = request.getCantidadTotal() - cantidadTotalAnterior;
+            int nuevaDisponibilidad = item.getCantidadDisponible() + diferencia;
+            // Asegurar que no sea negativa
+            item.setCantidadDisponible(Math.max(0, nuevaDisponibilidad));
         }
 
         return itemRepository.save(item);

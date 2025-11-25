@@ -23,7 +23,8 @@ public class StockService {
     private MovimientoInventarioRepository movimientoInventarioRepository;
 
     @Transactional
-    public boolean reservarStock(Map<Long, Integer> itemsToReserve) {
+    public boolean reservarStock(Map<Long, Integer> itemsToReserve,
+            com.bms.reserva_servicio_backend.models.Reserva reserva) {
         for (Map.Entry<Long, Integer> entry : itemsToReserve.entrySet()) {
             Long itemId = entry.getKey();
             Integer quantity = entry.getValue();
@@ -51,6 +52,8 @@ public class StockService {
                     .observaciones("Reserva de stock para paquete/reserva")
                     .stockAnterior(stockAnterior)
                     .stockPosterior(item.getCantidadDisponible())
+                    .reserva(reserva)
+                    .usuario(reserva != null ? reserva.getUser() : null)
                     .build();
             movimientoInventarioRepository.save(movimiento);
         }
