@@ -242,6 +242,21 @@ public class CabanaServiceImpl implements CabanaService {
         // Contar reservas desde el repositorio
         long totalReservas = reservaRepository.findByRecursoId(cabana.getId()).size();
 
+        // Obtener imagen principal
+        String imagenPrincipalUrl = null;
+        if (cabana.getImagenes() != null && !cabana.getImagenes().isEmpty()) {
+            imagenPrincipalUrl = cabana.getImagenes().stream()
+                    .filter(img -> img.getEsPrincipal() != null && img.getEsPrincipal())
+                    .map(img -> img.getUrl())
+                    .findFirst()
+                    .orElse(null);
+            
+            // Si no hay imagen principal, usar la primera
+            if (imagenPrincipalUrl == null && !cabana.getImagenes().isEmpty()) {
+                imagenPrincipalUrl = cabana.getImagenes().get(0).getUrl();
+            }
+        }
+
         return CabanaResponse.builder()
                 .id(cabana.getId())
                 .nombre(cabana.getNombre())
@@ -258,6 +273,7 @@ public class CabanaServiceImpl implements CabanaService {
                 .disponibleHoy(cabana.getEstado() == EstadoRecurso.DISPONIBLE)
                 .itemsInventario(cabana.getInventario() != null ? cabana.getInventario().size() : 0)
                 .imagenes(cabana.getImagenes())
+                .imagenPrincipalUrl(imagenPrincipalUrl)
                 .build();
     }
 

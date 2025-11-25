@@ -37,5 +37,6 @@ public class CabanaResponse {
 
     // Imágenes
     private List<RecursoImagen> imagenes;
+    private String imagenPrincipalUrl;
 
 }

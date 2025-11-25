@@ -248,6 +248,21 @@ public class ServicioServiceImpl implements ServicioService {
         // Obtener el total de reservas desde el repositorio
         int totalReservas = reservaRepository.findByRecursoId(servicio.getId()).size();
 
+        // Obtener imagen principal
+        String imagenPrincipalUrl = null;
+        if (servicio.getImagenes() != null && !servicio.getImagenes().isEmpty()) {
+            imagenPrincipalUrl = servicio.getImagenes().stream()
+                    .filter(img -> img.getEsPrincipal() != null && img.getEsPrincipal())
+                    .map(img -> img.getUrl())
+                    .findFirst()
+                    .orElse(null);
+            
+            // Si no hay imagen principal, usar la primera
+            if (imagenPrincipalUrl == null && !servicio.getImagenes().isEmpty()) {
+                imagenPrincipalUrl = servicio.getImagenes().get(0).getUrl();
+            }
+        }
+
         return ServicioResponse.builder()
                 .id(servicio.getId())
                 .nombre(servicio.getNombre())
@@ -265,6 +280,7 @@ public class ServicioServiceImpl implements ServicioService {
                 .bloquesDisponibles(servicio.getBloquesDisponibles() != null ? servicio.getBloquesDisponibles().size() : 0)
                 .itemsInventario(servicio.getInventario() != null ? servicio.getInventario().size() : 0)
                 .imagenes(servicio.getImagenes())
+                .imagenPrincipalUrl(imagenPrincipalUrl)
                 .build();
     }
 

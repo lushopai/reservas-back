@@ -41,5 +41,6 @@ public class ServicioResponse {
 
     // Imágenes
     private List<RecursoImagen> imagenes;
+    private String imagenPrincipalUrl;
 
 }
