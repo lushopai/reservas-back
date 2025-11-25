@@ -1,6 +1,7 @@
 package com.bms.reserva_servicio_backend.response;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
 import java.util.List;
 
 import com.bms.reserva_servicio_backend.models.RecursoImagen;
@@ -27,6 +28,10 @@ public class ServicioResponse {
     private Integer capacidadMaxima;
     private Integer duracionBloqueMinutos;
     private Boolean requiereSupervision;
+    
+    // Horarios
+    private LocalTime horaApertura;
+    private LocalTime horaCierre;
 
     // Información adicional
     private Integer totalReservas; // Total de reservas históricas

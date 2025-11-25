@@ -259,11 +259,11 @@ public class DisponibilidadController {
      */
     @PostMapping("/servicios/{id}/generar-bloques")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<SuccessResponse<String>> generarBloquesHorarios(
+    public ResponseEntity<com.bms.reserva_servicio_backend.response.GenerarBloquesResponse> generarBloquesHorarios(
             @PathVariable Long id,
             @Valid @RequestBody GenerarBloquesRequest request) {
 
-        disponibilidadService.generarBloquesHorarios(
+        java.util.Map<String, Object> resultado = disponibilidadService.generarBloquesHorariosDetallado(
             id,
             request.getFecha(),
             request.getHoraApertura(),
@@ -271,10 +271,42 @@ public class DisponibilidadController {
             request.getDuracionBloqueMinutos()
         );
 
-        return ResponseEntity.ok(SuccessResponse.of(
-            "Generados bloques para " + request.getFecha(),
-            "Bloques horarios generados exitosamente"
-        ));
+        Integer bloquesCreados = (Integer) resultado.get("creados");
+        Integer bloquesDuplicados = (Integer) resultado.get("duplicados");
+        Integer bloquesTotales = (Integer) resultado.get("totales");
+        String horaAperturaReal = (String) resultado.get("horaAperturaReal");
+        String horaCierreReal = (String) resultado.get("horaCierreReal");
+
+        String mensaje;
+        String detalles = "";
+        Boolean exitoso = true;
+
+        if (bloquesCreados > 0 && bloquesDuplicados == 0) {
+            mensaje = "✓ Se crearon " + bloquesCreados + " bloques exitosamente (" + horaAperturaReal + " - " + horaCierreReal + ")";
+        } else if (bloquesCreados > 0 && bloquesDuplicados > 0) {
+            mensaje = "⚠ Se crearon " + bloquesCreados + " bloques (se omitieron " + bloquesDuplicados + " duplicados)";
+            detalles = "Rango: " + horaAperturaReal + " - " + horaCierreReal;
+        } else if (bloquesCreados == 0 && bloquesDuplicados > 0) {
+            mensaje = "ℹ No se crearon bloques - todos los horarios ya existen";
+            detalles = "Los " + bloquesDuplicados + " horarios para " + request.getFecha() + " ya estaban generados (" + horaAperturaReal + " - " + horaCierreReal + ")";
+        } else {
+            mensaje = "⚠ Error: No se procesó ningún bloque";
+            exitoso = false;
+        }
+
+        com.bms.reserva_servicio_backend.response.GenerarBloquesResponse response = 
+            com.bms.reserva_servicio_backend.response.GenerarBloquesResponse.builder()
+                .bloquesCreados(bloquesCreados)
+                .bloquesDuplicados(bloquesDuplicados)
+                .bloquesTotalesGenerados(bloquesTotales)
+                .mensaje(mensaje)
+                .exitoso(exitoso)
+                .detalles(detalles)
+                .horaAperturaReal(horaAperturaReal)
+                .horaCierreReal(horaCierreReal)
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 
     /**

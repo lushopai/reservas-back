@@ -207,21 +207,41 @@ public class DisponibilidadService {
 
     /**
      * Generar bloques horarios para un servicio (útil para inicialización)
+     * Retorna un Map con estadísticas de la operación
      */
-    public void generarBloquesHorarios(Long servicioId, LocalDate fecha,
+    public java.util.Map<String, Object> generarBloquesHorariosDetallado(Long servicioId, LocalDate fecha,
             LocalTime horaApertura, LocalTime horaCierre,
             Integer duracionBloqueMinutos) {
         ServicioEntretencion servicio = servicioRepository.findById(servicioId)
                 .orElseThrow(() -> new EntityNotFoundException("Servicio no encontrado"));
 
-        LocalTime horaActual = horaApertura;
+        // Validar que el rango solicitado esté dentro de los horarios configurados del servicio
+        LocalTime aperturaProceso = horaApertura;
+        LocalTime cierreProceso = horaCierre;
 
-        while (horaActual.isBefore(horaCierre)) {
+        // Si el servicio tiene horarios configurados, validar contra ellos
+        if (servicio.getHoraApertura() != null && servicio.getHoraCierre() != null) {
+            if (horaApertura.isBefore(servicio.getHoraApertura())) {
+                aperturaProceso = servicio.getHoraApertura();
+            }
+            if (horaCierre.isAfter(servicio.getHoraCierre())) {
+                cierreProceso = servicio.getHoraCierre();
+            }
+        }
+
+        LocalTime horaActual = aperturaProceso;
+        Integer bloquesCreados = 0;
+        Integer bloquesDuplicados = 0;
+        Integer bloquesTotales = 0;
+
+        while (horaActual.isBefore(cierreProceso)) {
             LocalTime horaFinBloque = horaActual.plusMinutes(duracionBloqueMinutos);
 
-            if (horaFinBloque.isAfter(horaCierre)) {
+            if (horaFinBloque.isAfter(cierreProceso)) {
                 break;
             }
+
+            bloquesTotales++;
 
             // Verificar si el bloque ya existe para evitar duplicados
             boolean existe = bloqueHorarioRepository.existeBloqueExacto(
@@ -236,10 +256,34 @@ public class DisponibilidadService {
                 bloque.setDisponible(true);
 
                 bloqueHorarioRepository.save(bloque);
+                bloquesCreados++;
+            } else {
+                bloquesDuplicados++;
             }
 
             horaActual = horaFinBloque;
         }
+
+        java.util.Map<String, Object> resultado = new java.util.HashMap<>();
+        resultado.put("creados", bloquesCreados);
+        resultado.put("duplicados", bloquesDuplicados);
+        resultado.put("totales", bloquesTotales);
+        resultado.put("horaAperturaReal", aperturaProceso.toString());
+        resultado.put("horaCierreReal", cierreProceso.toString());
+
+        return resultado;
+    }
+
+    /**
+     * Generar bloques horarios para un servicio (compatible con código anterior)
+     * @return cantidad de bloques creados (excluye duplicados)
+     */
+    public Integer generarBloquesHorarios(Long servicioId, LocalDate fecha,
+            LocalTime horaApertura, LocalTime horaCierre,
+            Integer duracionBloqueMinutos) {
+        java.util.Map<String, Object> resultado = generarBloquesHorariosDetallado(
+            servicioId, fecha, horaApertura, horaCierre, duracionBloqueMinutos);
+        return (Integer) resultado.get("creados");
     }
 
     /**

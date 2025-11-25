@@ -240,6 +240,8 @@ public class ServicioServiceImpl implements ServicioService {
         servicio.setCapacidadMaxima(request.getCapacidadMaxima());
         servicio.setDuracionBloqueMinutos(request.getDuracionBloqueMinutos());
         servicio.setRequiereSupervision(request.getRequiereSupervision());
+        servicio.setHoraApertura(request.getHoraApertura());
+        servicio.setHoraCierre(request.getHoraCierre());
     }
 
     private ServicioResponse mapearEntidadAResponse(ServicioEntretencion servicio) {
@@ -256,6 +258,8 @@ public class ServicioServiceImpl implements ServicioService {
                 .capacidadMaxima(servicio.getCapacidadMaxima())
                 .duracionBloqueMinutos(servicio.getDuracionBloqueMinutos())
                 .requiereSupervision(servicio.getRequiereSupervision())
+                .horaApertura(servicio.getHoraApertura())
+                .horaCierre(servicio.getHoraCierre())
                 .totalReservas(totalReservas)
                 .disponibleHoy(servicio.getEstado() == EstadoRecurso.DISPONIBLE)
                 .bloquesDisponibles(servicio.getBloquesDisponibles() != null ? servicio.getBloquesDisponibles().size() : 0)

@@ -1,5 +1,6 @@
 package com.bms.reserva_servicio_backend.models;
 
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,6 +39,13 @@ public class ServicioEntretencion extends Recurso {
 
     @Column(nullable = false)
     private Boolean requiereSupervision = false;
+
+    // Horarios de atención (para validar generación de bloques)
+    @Column(name = "hora_apertura")
+    private LocalTime horaApertura; // Ej: 09:00
+
+    @Column(name = "hora_cierre")
+    private LocalTime horaCierre;   // Ej: 18:00
 
     @OneToMany(mappedBy = "servicio", cascade = CascadeType.ALL)
     private List<BloqueHorario> bloquesDisponibles = new ArrayList<>();
@@ -80,6 +88,22 @@ public class ServicioEntretencion extends Recurso {
 
     public void setBloquesDisponibles(List<BloqueHorario> bloquesDisponibles) {
         this.bloquesDisponibles = bloquesDisponibles;
+    }
+
+    public LocalTime getHoraApertura() {
+        return horaApertura;
+    }
+
+    public void setHoraApertura(LocalTime horaApertura) {
+        this.horaApertura = horaApertura;
+    }
+
+    public LocalTime getHoraCierre() {
+        return horaCierre;
+    }
+
+    public void setHoraCierre(LocalTime horaCierre) {
+        this.horaCierre = horaCierre;
     }
 
     @Override

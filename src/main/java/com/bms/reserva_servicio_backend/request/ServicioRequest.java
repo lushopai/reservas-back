@@ -1,6 +1,7 @@
 package com.bms.reserva_servicio_backend.request;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
 
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Min;
@@ -38,7 +39,10 @@ public class ServicioRequest {
     @Min(value = 15, message = "La duración mínima es 15 minutos")
     private Integer duracionBloqueMinutos; // 60 para 1 hora, 120 para 2 horas, etc
 
-    @NotNull(message = "Debe indicar si requiere supervisión")
-    private Boolean requiereSupervision;
+    private Boolean requiereSupervision = false; // Valor por defecto false si no se envía
+
+    // Horarios de atención
+    private LocalTime horaApertura; // Ej: 09:00 - opcional, puede ser null
+    private LocalTime horaCierre;   // Ej: 18:00 - opcional, puede ser null
 
 }
